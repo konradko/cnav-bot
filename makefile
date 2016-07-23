@@ -1,7 +1,7 @@
 build: clean virtualenv local_settings
 
 local_settings:
-	[ ! -f src/cnavbot/settings/local.py ] && cp rc/cnavbot/settings/local.template.py src/cnavbot/settings/local.py || true
+	[ ! -f src/cnavbot/settings/local.py ] && cp src/cnavbot/settings/local.example.py src/cnavbot/settings/local.py || true
 
 clean:
 	-find . -type f -name "*.pyc" -delete
@@ -10,6 +10,10 @@ virtualenv:
 	pip install --upgrade pip
 	pip install pip-tools
 	pip install -r requirements/test.txt
+
+run_on_rpi:
+	modprobe bcm2835-v4l2
+	python src/cnavbot/main.py
 
 test_in_docker:
 	docker-compose -f docker-compose.test.yml build --pull
