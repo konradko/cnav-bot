@@ -20,10 +20,12 @@ test_in_docker:
 	docker-compose -f docker-compose.test.yml run sut
 
 update_requirements:
-	pip install pip-tools
 	pip-compile --output-file requirements/common.txt requirements/common.in
 	pip-compile --output-file requirements/test.txt requirements/test.in
 
+upgrade_requirements:
+	pip-compile --upgrade --output-file requirements/common.txt requirements/common.in
+	pip-compile --upgrade --output-file requirements/test.txt requirements/test.in
 test:
 	py.test src/cnavbot $(pytest_args)
 

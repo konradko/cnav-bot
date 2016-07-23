@@ -2,6 +2,5 @@
 
 pytest
 pytest-cov
-raven==5.20.0
-xenon==0.4.0
-flake8==2.6.2
+raven
+xenon
