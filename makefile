@@ -19,6 +19,11 @@ test_in_docker:
 	docker-compose -f docker-compose.test.yml build --pull
 	docker-compose -f docker-compose.test.yml run sut
 
+update_requirements:
+	pip install pip-tools
+	pip-compile --output-file requirements/common.txt requirements/common.in
+	pip-compile --output-file requirements/test.txt requirements/test.in
+
 test:
 	py.test src/cnavbot $(pytest_args)
 
@@ -35,4 +40,4 @@ xenon:
 	@echo "Running xenon over codebase"
 	xenon --max-absolute B --max-modules B --max-average A src/cnavbot
 
-.PHONY: build clean virtualenv test coverage static_analysis pep8 xenon test_in_docker
+.PHONY: build clean virtualenv test coverage static_analysis pep8 xenon test_in_docker run_on_rpi
