@@ -9,7 +9,7 @@ clean:
 virtualenv:
 	pip install --upgrade pip
 	pip install pip-tools
-	pip install -r requirements/test.txt
+	pip-sync requirements/test.txt
 
 run_on_rpi:
 	modprobe bcm2835-v4l2

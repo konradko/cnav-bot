@@ -4,3 +4,4 @@
 #
 #    pip-compile --output-file requirements/common.txt requirements/common.in
 #
+RPi.GPIO==0.6.2
