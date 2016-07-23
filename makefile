@@ -30,6 +30,9 @@ test:
 coverage:
 	py.test src/cnavbot --cov=src/cnavbot $(pytest_args)
 
+deploy:
+	git push resin master
+
 static_analysis: pep8 xenon
 
 pep8:
