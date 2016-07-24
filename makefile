@@ -1,7 +1,10 @@
-build: clean virtualenv local_settings
+build: clean virtualenv local_settings resin_cli
 
 local_settings:
 	[ ! -f src/cnavbot/settings/local.py ] && cp src/cnavbot/settings/local.example.py src/cnavbot/settings/local.py || true
+
+resin_cli:
+	npm install --global --production resin-cli
 
 clean:
 	-find . -type f -name "*.pyc" -delete
@@ -34,6 +37,9 @@ coverage:
 
 deploy:
 	git push resin master
+
+ssh_bot1:
+	resin ssh e5eebce
 
 static_analysis: pep8 xenon
 
