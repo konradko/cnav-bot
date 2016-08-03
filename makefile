@@ -1,18 +1,10 @@
-build: clean requirements local_settings resin_cli
-
-local_settings:
-	[ ! -f src/cnavbot/settings/local.py ] && cp src/cnavbot/settings/local.example.py src/cnavbot/settings/local.py || true
+build: clean local_requirements resin_cli
 
 resin_cli:
 	npm install --global --production resin-cli
 
 clean:
 	-find . -type f -name "*.pyc" -delete
-
-requirements:
-	pip install --upgrade pip
-	pip install pip-tools
-	pip-sync requirements/test.txt
 
 run_on_rpi:
 	# init camera
@@ -23,13 +15,21 @@ test_in_docker:
 	docker-compose -f docker-compose.test.yml build --pull
 	docker-compose -f docker-compose.test.yml run sut
 
+local_requirements:
+	pip install --upgrade pip
+	pip install pip-tools
+	pip install --no-deps -e git+https://git@github.com/konradko/pi2go.git@master#egg=pi2go
+	pip-sync requirements/test.txt
+
+
 update_requirements:
-	pip-compile --output-file requirements/common.txt requirements/common.in
+	pip-compile --output-file requirements/prod.txt requirements/prod.in
 	pip-compile --output-file requirements/test.txt requirements/test.in
 
 upgrade_requirements:
-	pip-compile --upgrade --output-file requirements/common.txt requirements/common.in
+	pip-compile --upgrade --output-file requirements/prod.txt requirements/prod.in
 	pip-compile --upgrade --output-file requirements/test.txt requirements/test.in
+
 test:
 	py.test src/cnavbot $(pytest_args)
 
@@ -60,4 +60,4 @@ xenon:
 	@echo "Running xenon over codebase"
 	xenon --max-absolute B --max-modules B --max-average A src/cnavbot
 
-.PHONY: build clean requirements test coverage static_analysis pep8 xenon test_in_docker run_on_rpi
+.PHONY: build clean local_requirements test coverage static_analysis pep8 xenon test_in_docker run_on_rpi update_requirements upgrade_requirements deploy ssh_bot1 ssh_bot2 ssh_bot3
