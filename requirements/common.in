@@ -1,2 +1,1 @@
-RPi.GPIO
-smbus-cffi
+-e git+https://git@github.com/konradko/pi2go.git@master#egg=pi2go

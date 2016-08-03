@@ -15,6 +15,7 @@ virtualenv:
 	pip-sync requirements/test.txt
 
 run_on_rpi:
+	# init camera
 	modprobe bcm2835-v4l2
 	python src/cnavbot/main.py
 

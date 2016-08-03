@@ -4,6 +4,7 @@
 #
 #    pip-compile --output-file requirements/test.txt requirements/test.in
 #
+-e git+https://git@github.com/konradko/pi2go.git@master#egg=pi2go
 cffi==1.7.0
 colorama==0.3.7           # via radon
 contextlib2==0.5.3        # via raven

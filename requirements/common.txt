@@ -4,6 +4,7 @@
 #
 #    pip-compile --output-file requirements/common.txt requirements/common.in
 #
+-e git+https://git@github.com/konradko/pi2go.git@master#egg=pi2go
 cffi==1.7.0               # via smbus-cffi
 pycparser==2.14           # via cffi
 RPi.GPIO==0.6.2
