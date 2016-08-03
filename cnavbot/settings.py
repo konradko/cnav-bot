@@ -12,8 +12,7 @@ if RUNNING_ON_PI:
     from pi2go import pi2go
     BOT_DRIVER = pigo
 else:
-    from mock import Mock
-    BOT_DRIVER = Mock()
+    BOT_DRIVER = None
 
 # Must be between 0 and 100
 BOT_DEFAULT_SPEED = os.getenv('BOT_DEFAULT_SPEED', 50)
