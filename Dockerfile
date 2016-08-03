@@ -14,7 +14,7 @@ RUN pip install -r /requirements.txt
 COPY . ./
 
 # switch on systemd init system in container
-# ENV INITSYSTEM on
+ENV INITSYSTEM on
 
 # make run_on_rpi will run when container starts up on the device
 CMD ["make","run_on_rpi"]
