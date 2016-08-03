@@ -9,6 +9,7 @@ from cnavbot import api, settings
 class Test(TestCase):
     bot = api.Bot(driver=mock.Mock())
 
+
 class TestMotors(Test):
 
     motors = api.Motors(driver=mock.Mock())

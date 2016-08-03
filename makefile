@@ -44,11 +44,11 @@ static_analysis: pep8 xenon
 
 pep8:
 	@echo "Running flake8 over codebase"
-	flake8 --ignore=E501,W391,F999 etl/
+	flake8 --ignore=E501,W391,F999 cnavbot/
 
 xenon:
 	@echo "Running xenon over codebase"
-	xenon --max-absolute B --max-modules B --max-average A cnavbot
+	xenon --max-absolute B --max-modules B --max-average A cnavbot/
 
 test: static_analysis
 	py.test cnavbot --cov=cnavbot $(pytest_args)
