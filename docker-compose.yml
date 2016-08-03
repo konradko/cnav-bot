@@ -3,5 +3,5 @@ services:
   sut:
     build:
       context: .
-      dockerfile: Dockerfile.template
+      dockerfile: Dockerfile.test
     env_file: ./.env
