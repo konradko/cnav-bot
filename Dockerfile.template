@@ -5,7 +5,7 @@ FROM resin/raspberrypi3-python
 WORKDIR /usr/src/app
 
 # Copy requirements first for better cache on later pushes
-COPY ./requirements/common.txt /requirements.txt
+COPY ./requirements/prod.txt /requirements.txt
 
 # pip install python deps from requirements.txt on the resin.io build server
 RUN pip install -r /requirements.txt
