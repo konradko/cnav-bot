@@ -1,4 +1,4 @@
-build: clean virtualenv local_settings resin_cli
+build: clean requirements local_settings resin_cli
 
 local_settings:
 	[ ! -f src/cnavbot/settings/local.py ] && cp src/cnavbot/settings/local.example.py src/cnavbot/settings/local.py || true
@@ -9,7 +9,7 @@ resin_cli:
 clean:
 	-find . -type f -name "*.pyc" -delete
 
-virtualenv:
+requirements:
 	pip install --upgrade pip
 	pip install pip-tools
 	pip-sync requirements/test.txt
@@ -39,8 +39,16 @@ coverage:
 deploy:
 	git push resin master
 
+RESIN_SSH := resin ssh
+
 ssh_bot1:
-	resin ssh e5eebce
+	$(RESIN_SSH) e5eebce
+
+ssh_bot2:
+	$(RESIN_SSH) e090bec
+
+ssh_bot3:
+	$(RESIN_SSH) 9affe51
 
 static_analysis: pep8 xenon
 
@@ -52,4 +60,4 @@ xenon:
 	@echo "Running xenon over codebase"
 	xenon --max-absolute B --max-modules B --max-average A src/cnavbot
 
-.PHONY: build clean virtualenv test coverage static_analysis pep8 xenon test_in_docker run_on_rpi
+.PHONY: build clean requirements test coverage static_analysis pep8 xenon test_in_docker run_on_rpi
