@@ -3,3 +3,4 @@ pytest-cov
 raven
 xenon
 mock
+flake8

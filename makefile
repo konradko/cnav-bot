@@ -29,12 +29,6 @@ upgrade_requirements:
 	pip-compile --upgrade --output-file requirements/rpi.txt requirements/rpi.in
 	pip-compile --upgrade --output-file requirements/test.txt requirements/test.in
 
-test:
-	py.test cnavbot --cov=cnavbot $(pytest_args)
-
-deploy:
-	git push resin master
-
 RESIN_SSH := resin ssh
 
 ssh_bot1:
@@ -55,5 +49,11 @@ pep8:
 xenon:
 	@echo "Running xenon over codebase"
 	xenon --max-absolute B --max-modules B --max-average A cnavbot
+
+test: static_analysis
+	py.test cnavbot --cov=cnavbot $(pytest_args)
+
+deploy:
+	git push resin master
 
 .PHONY: build clean install_test_requirements test static_analysis pep8 xenon test_in_docker run_on_rpi update_requirements upgrade_requirements deploy ssh_bot1 ssh_bot2 ssh_bot3
