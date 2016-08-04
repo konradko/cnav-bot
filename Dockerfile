@@ -16,5 +16,10 @@ COPY . ./
 # switch on systemd init system in container
 ENV INITSYSTEM on
 
+# Install Dropbear.
+RUN apt-get update && apt-get install -yq --no-install-recommends \
+    dropbear \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 # make run_on_rpi will run when container starts up on the device
 CMD ["make","run_on_rpi"]
