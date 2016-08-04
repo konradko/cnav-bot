@@ -29,7 +29,7 @@ run_on_rpi: setup_local_ssh_on_rpi
 
 test_in_docker:
 	docker-compose -f docker-compose.test.yml build --pull
-	docker-compose -f docker-compose.test.yml run sut
+	docker-compose -f docker-compose.test.yml run test
 
 install_test_requirements:
 	pip install --upgrade pip
