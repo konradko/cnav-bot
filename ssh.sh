@@ -1,11 +1,11 @@
-# Install openSSH server
-apt-get update && apt-get install -yq --no-install-recommends \
-openssh-server && \
-apt-get clean && rm -rf /var/lib/apt/lists/*
+#!/bin/bash
 
-# Setup openSSH config
-echo "root:$PASSWD" | chpasswd \
-&& sed -i "s/PermitRootLogin without-password/PermitRootLogin yes/" /etc/ssh/sshd_config \
-&& sed -i "s/UsePAM yes/UsePAM no/" /etc/ssh/sshd_config
-
-service ssh start
+if [[ "$1" != "" ]]; then
+    # Hostname is the first command line argument
+    HOST="$1"
+    # Host key changes on every deployment, thus removing it from known hosts
+    ssh-keygen -R $HOST
+    ssh root@$HOST
+else
+    echo "Usage: ./ssh.sh <hostname>"
+fi

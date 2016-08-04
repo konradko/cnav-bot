@@ -4,6 +4,14 @@ FROM resin/raspberrypi3-python
 # Set our working directory
 WORKDIR /usr/src/app
 
+# Install openSSH, remove the apt list to reduce the size of the image
+RUN apt-get update && apt-get install -yq --no-install-recommends \
+    openssh-server && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Only allow public-key based ssh login
+RUN sed -i 's/UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
+
 # Copy requirements first for better cache on later pushes
 COPY ./requirements/rpi.txt /requirements.txt
 

@@ -8,25 +8,23 @@ resin_cli:
 clean:
 	-find . -type f -name "*.pyc" -delete
 
-setup_local_ssh_on_rpi:
-	./ssh.sh
-
-run_on_rpi: setup_local_ssh_on_rpi
-	# init camera
+run_on_rpi:
+	# Init local ssh
+	./setup_ssh.sh
+	# Init camera
 	modprobe bcm2835-v4l2
-	# init pi2go
+	# Init pi2go
 	modprobe i2c-dev
 	python cnavbot/main.py
 
 test_in_docker:
 	docker-compose -f docker-compose.test.yml build --pull
-	docker-compose -f docker-compose.test.yml run test
+	docker-compose -f docker-compose.test.yml run sut
 
 install_test_requirements:
 	pip install --upgrade pip
 	pip install pip-tools
 	pip-sync requirements/test.txt
-
 
 update_requirements:
 	pip-compile --output-file requirements/rpi.txt requirements/rpi.in
@@ -45,20 +43,13 @@ resin_ssh_bot2:
 resin_ssh_bot3:
 	$(RESIN_SSH) 9affe51
 
-BOT1_IP := 192.168.1.18
-BOT2_IP := 192.168.1.15
-BOT3_IP := 192.168.1.132
-
 # Set addresses according to resin.io app dashboard
 ssh_bot1:
-	ssh-keygen -R $(BOT1_IP)
-	ssh root@$(BOT1_IP)
+	./ssh.sh 192.168.1.18
 ssh_bot2:
-	ssh-keygen -R $(BOT2_IP)
-	ssh root@$(BOT2_IP)
+	./ssh.sh 192.168.1.15
 ssh_bot3:
-	ssh-keygen -R $(BOT3_IP)
-	ssh root@$(BOT3_IP)
+	./ssh.sh 192.168.1.132
 
 static_analysis: pep8 xenon
 
@@ -76,4 +67,4 @@ test: static_analysis
 deploy:
 	git push resin master
 
-.PHONY: build clean install_test_requirements test static_analysis pep8 xenon test_in_docker run_on_rpi update_requirements upgrade_requirements deploy ssh_bot1 ssh_bot2 ssh_bot3 resin_ssh_bot1 resin_ssh_bot2 resin_ssh_bot3 setup_local_ssh_on_rpi
+.PHONY: build clean install_test_requirements test static_analysis pep8 xenon test_in_docker run_on_rpi update_requirements upgrade_requirements deploy ssh_bot1 ssh_bot2 ssh_bot3
