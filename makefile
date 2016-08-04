@@ -16,8 +16,8 @@ run_on_rpi:
 	python cnavbot/main.py
 
 test_in_docker:
-	docker-compose -f docker-compose.yml build --pull
-	docker-compose -f docker-compose.yml run sut
+	docker-compose -f docker-compose.test.yml build --pull
+	docker-compose -f docker-compose.test.yml run sut
 
 install_test_requirements:
 	pip install --upgrade pip
