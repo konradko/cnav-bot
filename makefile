@@ -8,7 +8,19 @@ resin_cli:
 clean:
 	-find . -type f -name "*.pyc" -delete
 
-run_on_rpi:
+setup_local_ssh_on_rpi:
+	# Install openSSH server
+	apt-get update && apt-get install -yq --no-install-recommends \
+    openssh-server && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+	# Setup openSSH config
+	mkdir /var/run/sshd \
+    && echo "root:$PASSWD" | chpasswd \
+    && sed -i "s/PermitRootLogin without-password/PermitRootLogin yes/" /etc/ssh/sshd_config \
+    && sed -i "s/UsePAM yes/UsePAM no/" /etc/ssh/sshd_config
+
+run_on_rpi: setup_local_ssh_on_rpi
 	# init camera
 	modprobe bcm2835-v4l2
 	# init pi2go
@@ -73,4 +85,4 @@ test: static_analysis
 deploy:
 	git push resin master
 
-.PHONY: build clean install_test_requirements test static_analysis pep8 xenon test_in_docker run_on_rpi update_requirements upgrade_requirements deploy ssh_bot1 ssh_bot2 ssh_bot3
+.PHONY: build clean install_test_requirements test static_analysis pep8 xenon test_in_docker run_on_rpi update_requirements upgrade_requirements deploy ssh_bot1 ssh_bot2 ssh_bot3 resin_ssh_bot1 resin_ssh_bot2 resin_ssh_bot3 setup_local_ssh_on_rpi

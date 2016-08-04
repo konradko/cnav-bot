@@ -16,16 +16,5 @@ COPY . ./
 # Switch on systemd init system in container
 ENV INITSYSTEM on
 
-# Install openSSH server
-RUN apt-get update && apt-get install -yq --no-install-recommends \
-    openssh-server && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Setup openSSH config
-RUN mkdir /var/run/sshd \
-    && echo 'root:$PASSWD' | chpasswd \
-    && sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config \
-    && sed -i 's/UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
-
 # make run_on_rpi will run when container starts up on the device
 CMD ["make","run_on_rpi"]
