@@ -4,3 +4,5 @@ raven
 xenon
 mock
 flake8
+flake8-polyfill
+radon
