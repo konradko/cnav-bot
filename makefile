@@ -9,16 +9,7 @@ clean:
 	-find . -type f -name "*.pyc" -delete
 
 setup_local_ssh_on_rpi:
-	# Install openSSH server
-	apt-get update && apt-get install -yq --no-install-recommends \
-    openssh-server && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
-	# Setup openSSH config
-	mkdir /var/run/sshd \
-    && echo "root:$PASSWD" | chpasswd \
-    && sed -i "s/PermitRootLogin without-password/PermitRootLogin yes/" /etc/ssh/sshd_config \
-    && sed -i "s/UsePAM yes/UsePAM no/" /etc/ssh/sshd_config
+	./ssh.sh
 
 run_on_rpi: setup_local_ssh_on_rpi
 	# init camera
