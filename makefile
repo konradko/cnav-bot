@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 build: clean install_test_requirements resin_cli
 
 resin_cli:
@@ -32,15 +34,28 @@ upgrade_requirements:
 	pip-compile --upgrade --output-file requirements/test.txt requirements/test.in
 
 RESIN_SSH := resin ssh
-
-ssh_bot1:
+# Set hashes according to resin.io app dashboard
+resin_ssh_bot1:
 	$(RESIN_SSH) e5eebce
-
-ssh_bot2:
+resin_ssh_bot2:
 	$(RESIN_SSH) e090bec
-
-ssh_bot3:
+resin_ssh_bot3:
 	$(RESIN_SSH) 9affe51
+
+BOT1_IP := 192.168.1.18
+BOT2_IP := 192.168.1.15
+BOT3_IP := 192.168.1.132
+
+# Set addresses according to resin.io app dashboard
+ssh_bot1:
+	ssh-keygen -R $(BOT1_IP)
+	ssh root@$(BOT1_IP)
+ssh_bot2:
+	ssh-keygen -R $(BOT2_IP)
+	ssh root@$(BOT2_IP)
+ssh_bot3:
+	ssh-keygen -R $(BOT3_IP)
+	ssh root@$(BOT3_IP)
 
 static_analysis: pep8 xenon
 

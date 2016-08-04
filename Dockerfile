@@ -13,13 +13,19 @@ RUN pip install -r /requirements.txt
 # This will copy all files in our root to the working  directory in the container
 COPY . ./
 
-# switch on systemd init system in container
+# Switch on systemd init system in container
 ENV INITSYSTEM on
 
-# Install Dropbear.
+# Install openSSH server
 RUN apt-get update && apt-get install -yq --no-install-recommends \
-    dropbear \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    openssh-server && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Setup openSSH config
+RUN mkdir /var/run/sshd \
+    && echo 'root:$PASSWD' | chpasswd \
+    && sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config \
+    && sed -i 's/UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
 
 # make run_on_rpi will run when container starts up on the device
 CMD ["make","run_on_rpi"]
