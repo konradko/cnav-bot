@@ -9,6 +9,8 @@ clean:
 run_on_rpi:
 	# init camera
 	modprobe bcm2835-v4l2
+	# init pi2go
+	modprobe i2c-dev
 	python cnavbot/main.py
 
 test_in_docker:
