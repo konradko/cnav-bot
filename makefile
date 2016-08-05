@@ -43,13 +43,13 @@ resin_ssh_bot2:
 resin_ssh_bot3:
 	$(RESIN_SSH) 9affe51
 
-# Set addresses according to resin.io app dashboard
+# Set addresses as env vars according to resin.io app dashboard
 ssh_bot1:
-	./ssh.sh 192.168.1.18
+	./ssh.sh $CNAV_BOT1
 ssh_bot2:
-	./ssh.sh 192.168.1.15
+	./ssh.sh $CNAV_BOT2
 ssh_bot3:
-	./ssh.sh 192.168.1.132
+	./ssh.sh $CNAV_BOT3
 
 static_analysis: pep8 xenon
 
