@@ -1,5 +1,5 @@
 # cnav-bot
-Autonomous vehicle system using [pi2go](http://www.pi2go.co.uk/) integrated robot and Raspberry Pi.
+Autonomous vehicle system using [pi2go](http://www.pi2go.co.uk/) and Raspberry Pi.
 
 ## Required hardware
 
@@ -30,3 +30,19 @@ Autonomous vehicle system using [pi2go](http://www.pi2go.co.uk/) integrated robo
 
     $ make deploy
 
+## SSH into the container using local network 
+
+1. Set the `CLIENT_PUBKEY` environment variable to your public key in resin.io dashboard, on OSX you can copy it with:
+    ```
+    $ cat ~/.ssh/id_rsa.pub | pbcopy
+    ```
+
+2. Deploy the application:
+    ```
+    $ make deploy
+    ```
+
+3. SSH into a container using local address (you can get it from resin.io dashboard or using [resin-cli](https://github.com/resin-io/resin-cli)), e.g.:
+    ```
+    $ ./ssh.sh 192.168.1.15
+    ```
