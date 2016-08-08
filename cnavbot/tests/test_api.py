@@ -90,65 +90,84 @@ class TestMotors(Test):
         self.motors.driver.stop.assert_called_once()
 
 
-# class TestLights(Test):
+class TestLights(Test):
+    lights = api.Lights(driver=mock.Mock())
 
-#     def test_set_led_rbg(self):
-#         """Spins right specified number of steps"""
-#         driver.setLED(led_number, red, green, blue)
+    def test_validate_led_number(self):
+        with pytest.raises(Exception) as excinfo:
+            self.lights.validate_led_number(555)
+        assert excinfo.value.message == (
+            "Invalid led number '555', must be in {}".format(
+                self.lights.led_numbers
+            )
+        )
 
-#     def test_set_all_leds_rbg(self):
-#         """Spins right specified number of steps"""
-#         for led_number in self.led_numbers:
-#             driver.setLED(led_number, red, green, blue)
+    def test_set_led_rbg(self):
+        self.lights.set_led_rbg(1, 233, 233, 233)
 
+        self.lights.driver.setLED.assert_called_with(1, 233, 233, 233)
 
-# class TestObstacle(Test):
-
-#     def test_left(self):
-#         """Returns true if there is an obstacle to the left"""
-#         return driver.irLeft()
-
-#     def test_right(self):
-#         """Returns true if there is an obstacle to the right"""
-#         return driver.irRight()
-
-#     def test_front(self):
-#         """Returns true if there is an obstacle in front"""
-#         return driver.irCentre()
-
-#     def test_front_distance(self):
-#         """
-#         Returns the distance in cm to the nearest reflecting object
-#         in front of the bot
-#         """
-#         return driver.getDistance()
-
-#     def test_any(self):
-#         """Returns true if there is any obstacle"""
-#         return driver.irAll()
+    def test_set_all_leds_rbg(self):
+        self.lights.set_all_leds_rbg(255, 255, 255)
+        for led_number in self.lights.led_numbers:
+            self.lights.driver.setLED.assert_any_call(
+                led_number, 255, 255, 255
+            )
 
 
-# class TestLineSensor(Test):
-#     # irLeftLine(): Returns state of Left IR Line sensor
+class TestObstacleSensor(Test):
+    obstacle_sensor = api.ObstacleSensor(driver=mock.Mock())
 
-#     def test_left(self):
-#         """Returns the state of the left line sensor"""
-#         return driver.irLeftLine()
+    def test_left(self):
+        self.obstacle_sensor.left()
 
-#     def test_right(self):
-#         """Returns the state of the right line sensor"""
-#         return driver.irRightLine()
+        self.obstacle_sensor.driver.irLeft.assert_called_once()
+
+    def test_right(self):
+        self.obstacle_sensor.right()
+
+        self.obstacle_sensor.driver.irRight.assert_called_once()
+
+    def test_front(self):
+        self.obstacle_sensor.front()
+
+        self.obstacle_sensor.driver.irCentre.assert_called_once()
+
+    def test_front_distance(self):
+        self.obstacle_sensor.front_distance()
+
+        self.obstacle_sensor.driver.getDistance()
+
+    def test_any(self):
+        self.obstacle_sensor.any()
+
+        self.obstacle_sensor.driver.irAll()
 
 
-# class TestBot(Test):
+class TestLineSensor(Test):
+    line_sensor = api.LineSensor(driver=mock.Mock())
 
-#     def __init__(self):
-#         self.name = name or settings.BOT_DEFAULT_NAME
-#         self.speed = speed or settings.BOT_DEFAULT_SPEED
-#         self.validate_speed(self.speed)
-#         self.motors = Motors()
-#         self.lights = Lights()
-#         self.obstacle = Obstacle()
-#         self.line_sensor = LineSensor()
-#         driver.init()
+    def test_left(self):
+        self.line_sensor.left()
+
+        self.line_sensor.driver.irLeftLine.assert_called_once()
+
+    def test_right(self):
+        self.line_sensor.right()
+
+        self.line_sensor.driver.irRightLine.assert_called_once()
+
+
+class TestBot(Test):
+
+    def test__init__(self):
+        bot = api.Bot(speed=20, driver=mock.Mock())
+
+        assert bot.name == settings.BOT_DEFAULT_NAME
+        assert bot.motors
+        assert bot.motors.speed == 20
+        assert bot.lights
+        assert bot.obstacle_sensor
+        assert bot.line_sensor
+        bot.driver.init.assert_called_once()
 

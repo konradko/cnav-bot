@@ -62,8 +62,18 @@ class Motors(Driver):
 class Lights(Driver):
     led_numbers = (1, 2, 3, 4)
 
+    def validate_led_number(self, led_number):
+        if not(led_number in self.led_numbers):
+            raise Exception(
+                "Invalid led number '{}', must be in {}".format(
+                    led_number,
+                    self.led_numbers
+                )
+            )
+
     def set_led_rbg(self, led_number, red, blue, green):
         """Spins right specified number of steps"""
+        self.validate_led_number(led_number)
         self.driver.setLED(led_number, red, green, blue)
 
     def set_all_leds_rbg(self, red, blue, green):
@@ -72,7 +82,7 @@ class Lights(Driver):
             self.driver.setLED(led_number, red, green, blue)
 
 
-class Obstacle(Driver):
+class ObstacleSensor(Driver):
 
     def left(self):
         """Returns true if there is an obstacle to the left"""
@@ -88,7 +98,7 @@ class Obstacle(Driver):
 
     def front_distance(self):
         """
-        Returns the distance in cm to the nearest reflecting Driver
+        Returns the distance in cm to the nearest reflecting object
         in front of the bot
         """
         return self.driver.getDistance()
@@ -116,6 +126,6 @@ class Bot(Driver):
         self.name = name or settings.BOT_DEFAULT_NAME
         self.motors = Motors(speed)
         self.lights = Lights()
-        self.obstacle = Obstacle()
+        self.obstacle_sensor = ObstacleSensor()
         self.line_sensor = LineSensor()
         self.driver.init()
