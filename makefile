@@ -37,19 +37,19 @@ upgrade_requirements:
 RESIN_SSH := resin ssh
 # Set hashes according to resin.io app dashboard
 resin_ssh_bot1:
-	$(RESIN_SSH) e5eebce
+	$(RESIN_SSH) $CNAV_BOT1_ID
 resin_ssh_bot2:
-	$(RESIN_SSH) e090bec
+	$(RESIN_SSH) $CNAV_BOT2_ID
 resin_ssh_bot3:
-	$(RESIN_SSH) 9affe51
+	$(RESIN_SSH) $CNAV_BOT3_ID
 
 # Set addresses as env vars according to resin.io app dashboard
 ssh_bot1:
-	./ssh.sh $CNAV_BOT1
+	./ssh.sh $CNAV_BOT1_IP
 ssh_bot2:
-	./ssh.sh $CNAV_BOT2
+	./ssh.sh $CNAV_BOT2_IP
 ssh_bot3:
-	./ssh.sh $CNAV_BOT3
+	./ssh.sh $CNAV_BOT3_IP
 
 static_analysis: pep8 xenon
 
