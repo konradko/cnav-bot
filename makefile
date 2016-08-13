@@ -9,12 +9,8 @@ clean:
 	-find . -type f -name "*.pyc" -delete
 
 run_on_rpi:
-	# Init local ssh
-	./setup_ssh.sh
-	# Init camera
-	modprobe bcm2835-v4l2
-	# Init pi2go
-	modprobe i2c-dev
+	# Initialise hardware and deamons
+	./init.sh
 	python cnavbot/main.py
 
 test_in_docker:
@@ -45,11 +41,11 @@ resin_ssh_bot3:
 
 # Set addresses as env vars according to resin.io app dashboard
 ssh_bot1:
-	./ssh.sh $CNAV_BOT1_IP
+	ssh root@$(CNAV_BOT1_IP)
 ssh_bot2:
-	./ssh.sh $CNAV_BOT2_IP
+	ssh root@$(CNAV_BOT2_IP)
 ssh_bot3:
-	./ssh.sh $CNAV_BOT3_IP
+	ssh root@$(CNAV_BOT3_IP)
 
 static_analysis: pep8 xenon
 

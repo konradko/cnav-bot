@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Setup client's public-key
+# OpenSSH
 mkdir -p ~/.ssh
 # CLIENT_PUBKEY is set via resin.io env vars
 echo $CLIENT_PUBKEY | tee -a ~/.ssh/authorized_keys
@@ -16,3 +16,14 @@ else
 fi
 
 service ssh start
+
+# Papertrail
+sed -i 's/host:/host: $PAPERTRAIL_HOST/' /etc/log_files.yml
+sed -i 's/port:/port: $PAPERTRAIL_PORT/' /etc/log_files.yml
+remote_syslog
+
+# Picamera
+modprobe bcm2835-v4l2
+
+# pi2go
+modprobe i2c-dev
