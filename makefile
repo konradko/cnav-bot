@@ -15,7 +15,7 @@ run_on_rpi:
 
 test_in_docker:
 	docker-compose -f docker-compose.test.yml build --pull
-	docker-compose -f docker-compose.test.yml run sut
+	docker-compose -f docker-compose.test.yml run test
 
 install_test_requirements:
 	pip install --upgrade pip
@@ -33,11 +33,11 @@ upgrade_requirements:
 RESIN_SSH := resin ssh
 # Set hashes according to resin.io app dashboard
 resin_ssh_bot1:
-	$(RESIN_SSH) $CNAV_BOT1_ID
+	$(RESIN_SSH) $(CNAV_BOT1_ID)
 resin_ssh_bot2:
-	$(RESIN_SSH) $CNAV_BOT2_ID
+	$(RESIN_SSH) $(CNAV_BOT2_ID)
 resin_ssh_bot3:
-	$(RESIN_SSH) $CNAV_BOT3_ID
+	$(RESIN_SSH) $(CNAV_BOT3_ID)
 
 # Set addresses as env vars according to resin.io app dashboard
 ssh_bot1:

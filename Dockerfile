@@ -8,10 +8,12 @@ WORKDIR /usr/src/app
 RUN wget https://github.com/papertrail/remote_syslog2/releases/download/v0.18/remote-syslog2_0.18_armhf.deb \
     && dpkg -i remote-syslog2_0.18_armhf.deb
 COPY ./log_files.yml /etc/
+COPY ./papertrail.service /etc/systemd/system/
 
-# Install openSSH, remove the apt list to reduce the size of the image
+# Install openSSH and nmap (contains ncat required by papertrail),
+# remove the apt list to reduce the size of the image
 RUN apt-get update && apt-get install -yq --no-install-recommends \
-    openssh-server && \
+    openssh-server nmap && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Only allow public-key based ssh login
