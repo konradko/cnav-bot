@@ -6,7 +6,9 @@
 #
 -e git+https://git@github.com/konradko/pi2go.git@master#egg=pi2go
 cffi==1.7.0               # via smbus-cffi
+contextlib2==0.5.4        # via raven
 picamera==1.12
 pycparser==2.14           # via cffi
+raven==5.24.3
 RPi.GPIO==0.6.2
 smbus-cffi==0.5.1

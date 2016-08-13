@@ -1,5 +1,7 @@
 import os
 
+from raven import Client
+
 
 _, HOSTNAME, _, _, MACHINE = os.uname()
 RUNNING_ON_PI = (
@@ -17,3 +19,5 @@ else:
 BOT_DEFAULT_SPEED = int(os.getenv('BOT_DEFAULT_SPEED', 50))
 BOT_DEFAULT_NAME = os.getenv('BOT_DEFAULT_NAME', HOSTNAME)
 
+SENTRY_DSN = os.environ.get('SENTRY_DSN', '')
+SENTRY_CLIENT = Client(SENTRY_DSN) if SENTRY_DSN else None

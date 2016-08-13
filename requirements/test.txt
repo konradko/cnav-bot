@@ -4,6 +4,7 @@
 #
 #    pip-compile --output-file requirements/test.txt requirements/test.in
 #
+-e git+https://github.com/resin-io/resin-sdk-python.git@master#egg=resin
 colorama==0.3.7           # via radon
 configparser==3.5.0       # via flake8
 contextlib2==0.5.4        # via raven
@@ -12,18 +13,23 @@ enum34==1.1.6             # via flake8
 flake8-polyfill==1.0.1
 flake8==3.0.3
 funcsigs==1.0.2           # via mock
+future==0.15.2            # via pyotp
 mando==0.3.3              # via radon
 mccabe==0.5.2             # via flake8
 mock==2.0.0
 pbr==1.10.0               # via mock
+pubnub==3.8.2
 py==1.4.31                # via pytest
 pycodestyle==2.0.0        # via flake8
+pycryptodomex==3.4.2      # via pubnub
 pyflakes==1.2.3           # via flake8
+PyJWT==1.4.2
+pyotp==2.1.1
 pytest-cov==2.3.0
 pytest==2.9.2
 PyYAML==3.11              # via xenon
-radon==1.4.2
+radon==1.4.0
 raven==5.23.0
-requests==2.10.0          # via xenon
+requests==2.10.0          # via pubnub, xenon
 six==1.10.0               # via mock
 xenon==0.4.0
