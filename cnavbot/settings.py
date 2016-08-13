@@ -18,6 +18,7 @@ else:
 # Must be between 0 and 100
 BOT_DEFAULT_SPEED = int(os.getenv('BOT_DEFAULT_SPEED', 30))
 BOT_DEFAULT_NAME = os.getenv('BOT_DEFAULT_NAME', HOSTNAME)
+BOT_DEFAULT_MAX_DISTANCE = os.getenv('BOT_DEFAULT_MAX_DISTANCE', 10)
 
 SENTRY_DSN = os.environ.get('SENTRY_DSN', '')
 SENTRY_CLIENT = Client(SENTRY_DSN) if SENTRY_DSN else None

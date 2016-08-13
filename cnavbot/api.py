@@ -1,3 +1,5 @@
+import time
+
 from cnavbot import settings
 
 
@@ -23,37 +25,37 @@ class Motors(Driver):
                 )
             )
 
-    def forward(self):
+    def forward(self, steps=None):
         """Sets both motors to go forward"""
         self.driver.forward(self.speed)
 
-    def reverse(self):
+        if steps:
+            self.keep_running(steps)
+
+    def reverse(self, steps=None):
         """Sets both motors to reverse"""
         self.driver.reverse(self.speed)
 
-    def spin_left(self):
+        if steps:
+            self.keep_running(steps)
+
+    def left(self, steps=None):
         """Sets motors to turn opposite directions for left spin"""
         self.driver.spinLeft(self.speed)
 
-    def spin_right(self):
+        if steps:
+            self.keep_running(steps)
+
+    def right(self, steps=None):
         """Sets motors to turn opposite directions for right spin"""
         self.driver.spinRight(self.speed)
 
-    def step_forward(self, steps):
-        """Moves forward specified number of steps"""
-        self.driver.stepForward(self.speed, steps)
+        if steps:
+            self.keep_running(steps)
 
-    def step_reverse(self, steps):
-        """Moves backward specified number of steps"""
-        self.driver.stepReverse(self.speed, steps)
-
-    def step_spin_left(self, steps):
-        """Spins left specified number of steps"""
-        self.driver.stepSpinL(self.speed, steps)
-
-    def step_spin_right(self, steps):
-        """Spins right specified number of steps"""
-        self.driver.stepSpinR(self.speed, steps)
+    def keep_running(self, steps):
+        time.sleep(0.1 * steps)
+        self.stop()
 
     def stop(self):
         self.driver.stop()
@@ -83,6 +85,10 @@ class Lights(Driver):
 
 
 class ObstacleSensor(Driver):
+
+    def __init__(self, max_distance=None, *args, **kwargs):
+        super(ObstacleSensor, self).__init__(*args, **kwargs)
+        self.max_distance = max_distance or settings.BOT_DEFAULT_MAX_DISTANCE
 
     def left(self):
         """Returns true if there is an obstacle to the left"""
@@ -121,17 +127,35 @@ class LineSensor(Driver):
 
 class Bot(Driver):
 
-    def __init__(self, name=None, speed=None, *args, **kwargs):
+    def __init__(
+            self, name=None, speed=None, max_distance=None, *args, **kwargs):
         super(Bot, self).__init__(*args, **kwargs)
         self.driver.init()
         self.name = name or settings.BOT_DEFAULT_NAME
         self.motors = Motors(speed=speed, driver=self.driver)
         self.lights = Lights(driver=self.driver)
-        self.obstacle_sensor = ObstacleSensor(driver=self.driver)
         self.line_sensor = LineSensor(driver=self.driver)
+        self.obstacle_sensor = ObstacleSensor(
+            max_distance=max_distance, driver=self.driver
+        )
 
     def cleanup(self):
         self.driver.cleanup()
+
+    @property
+    def switch_pressed(self):
+        self.driver.getSwitch()
+
+    def wait_till_switch_pressed(self):
+        while True:
+            if self.switch_pressed:
+                return
+            else:
+                time.sleep(1)
+
+    @property
+    def front_obstacle(self):
+        return self.obstacle_sensor.front()
 
     @property
     def left_obstacle(self):
@@ -142,29 +166,44 @@ class Bot(Driver):
         return self.obstacle_sensor.right()
 
     @property
+    def any_obstacle(self):
+        return any(
+            (self.front_obstacle, self.left_obstacle, self.right_obstacle)
+        )
+
+    @property
     def distance(self):
         return self.obstacle_sensor.distance()
 
     def avoid_left_obstacle(self):
         while self.left_obstacle:
-            self.motors.spin_right()
-            self.motors.stop()
+            self.motors.right(steps=2)
 
     def avoid_right_obstacle(self):
         while self.right_obstacle:
-            self.motors.spin_left()
-            self.motors.stop()
+            self.motors.left(steps=2)
 
     def avoid_front_obstacle(self):
-        while self.distance <= 0.2:
-            self.motors.spin_right()
-            self.motors.stop()
+        while self.front_obstacle:
+            self.motors.right(steps=2)
+
+    def avoid_obstacles(self):
+        counter = 0
+
+        while self.any_obstacle:
+            # If avoiding obstcles did not work for
+            if counter > 10:
+                self.motors.step_reverse(steps=2)
+                counter = 0
+
+            self.avoid_front_obstacle()
+            self.avoid_left_obstacle()
+            self.avoid_right_obstacle()
+
+            counter += 1
 
     def wander(self):
         while True:
-            self.avoid_left_obstacle()
-            self.avoid_right_obstacle()
-            while not (self.left_obstacle or self.right_obstacle):
-                self.avoid_front_obstacle()
-                self.motors.forward()
-            self.motors.stop()
+            self.avoid_obstacles()
+            self.motors.forward()
+            self.motors.keep_running(steps=1)

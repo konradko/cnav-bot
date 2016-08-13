@@ -12,8 +12,10 @@ class Test(TestCase):
 
 class TestMotors(Test):
 
-    motors = api.Motors(driver=mock.Mock())
-    steps = 5
+    def setUp(self):
+        self.motors = api.Motors(driver=mock.Mock())
+        self.motors.keep_running = mock.Mock()
+        self.steps = 5
 
     def test_validate_speed(self):
         with pytest.raises(Exception) as excinfo:
@@ -43,46 +45,50 @@ class TestMotors(Test):
         )
 
     def test_spin_left(self):
-        self.motors.spin_left()
+        self.motors.left()
 
         self.motors.driver.spinLeft.assert_called_once_with(
             settings.BOT_DEFAULT_SPEED
         )
 
     def test_spin_right(self):
-        self.motors.spin_right()
+        self.motors.right()
 
         self.motors.driver.spinRight.assert_called_once_with(
             settings.BOT_DEFAULT_SPEED
         )
 
     def test_step_forward(self):
-        self.motors.step_forward(steps=self.steps)
+        self.motors.forward(steps=self.steps)
 
-        self.motors.driver.stepForward.assert_called_once_with(
-            settings.BOT_DEFAULT_SPEED, self.steps
+        self.motors.driver.forward.assert_called_once_with(
+            settings.BOT_DEFAULT_SPEED
         )
+        self.motors.keep_running.assert_called_with(self.steps)
 
     def test_step_reverse(self):
-        self.motors.step_reverse(steps=self.steps)
+        self.motors.reverse(steps=self.steps)
 
-        self.motors.driver.stepReverse.assert_called_once_with(
-            settings.BOT_DEFAULT_SPEED, self.steps
+        self.motors.driver.reverse.assert_called_once_with(
+            settings.BOT_DEFAULT_SPEED
         )
+        self.motors.keep_running.assert_called_with(self.steps)
 
     def test_step_spin_left(self):
-        self.motors.step_spin_left(steps=self.steps)
+        self.motors.left(steps=self.steps)
 
-        self.motors.driver.stepSpinL.assert_called_once_with(
-            settings.BOT_DEFAULT_SPEED, self.steps
+        self.motors.driver.spinLeft.assert_called_once_with(
+            settings.BOT_DEFAULT_SPEED
         )
+        self.motors.keep_running.assert_called_with(self.steps)
 
     def test_step_spin_right(self):
-        self.motors.step_spin_right(steps=self.steps)
+        self.motors.right(steps=self.steps)
 
-        self.motors.driver.stepSpinR.assert_called_once_with(
-            settings.BOT_DEFAULT_SPEED, self.steps
+        self.motors.driver.spinRight.assert_called_once_with(
+            settings.BOT_DEFAULT_SPEED
         )
+        self.motors.keep_running.assert_called_with(self.steps)
 
     def test_stop(self):
         self.motors.stop()
@@ -162,6 +168,7 @@ class TestBot(Test):
 
     def setUp(self):
         self.bot = api.Bot(speed=20, driver=mock.Mock())
+        self.bot.motors.keep_running = mock.Mock()
 
     def test__init__(self):
         assert self.bot.name == settings.BOT_DEFAULT_NAME
@@ -185,7 +192,7 @@ class TestBot(Test):
         self.bot.driver.spinRight.assert_called_once_with(
             self.bot.motors.speed
         )
-        self.bot.driver.stop.assert_called_once()
+        self.bot.motors.keep_running.assert_called_once()
 
     def test_avoid_right_obstacle(self):
         self.bot.driver.irRight.side_effect = [True, False]
@@ -195,14 +202,14 @@ class TestBot(Test):
         self.bot.driver.spinLeft.assert_called_once_with(
             self.bot.motors.speed
         )
-        self.bot.driver.stop.assert_called_once()
+        self.bot.motors.keep_running.assert_called_once()
 
     def test_avoid_front_obstacle(self):
-        self.bot.driver.getDistance.side_effect = [0.1, 1]
+        self.bot.driver.irCentre.side_effect = [True, False]
 
         self.bot.avoid_front_obstacle()
 
         self.bot.driver.spinRight.assert_called_once_with(
             self.bot.motors.speed
         )
-        self.bot.driver.stop.assert_called_once()
+        self.bot.motors.keep_running.assert_called_once()

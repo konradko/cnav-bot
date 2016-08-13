@@ -18,9 +18,9 @@ fi
 service ssh start
 
 # Papertrail
-sed -i 's/host:/host: $PAPERTRAIL_HOST/' /etc/log_files.yml
-sed -i 's/port:/port: $PAPERTRAIL_PORT/' /etc/log_files.yml
-sed -i 's/host port/$PAPERTRAIL_HOST $PAPERTRAIL_PORT/' /etc/systemd/system/papertrail.service
+sed -i "s/host:/host: $PAPERTRAIL_HOST/" /etc/log_files.yml
+sed -i "s/port:/port: $PAPERTRAIL_PORT/" /etc/log_files.yml
+sed -i "s/host port/$PAPERTRAIL_HOST $PAPERTRAIL_PORT/" /etc/systemd/system/papertrail.service
 systemctl enable /etc/systemd/system/papertrail.service
 systemctl start papertrail.service
 remote_syslog

@@ -33,14 +33,6 @@ def sentry(func):
     return wrapped
 
 
-def wait_till_switch_pressed():
-    while True:
-        if settings.BOT_DRIVER.getSwitch():
-            return
-        else:
-            time.sleep(0.5)
-
-
 def take_picture_continously(interval=15, save_to='/data/bot.jpg'):
     with picamera.PiCamera() as camera:
         camera.resolution = (640, 480)

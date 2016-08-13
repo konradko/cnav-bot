@@ -6,14 +6,20 @@ WORKDIR /usr/src/app
 
 # Install papertrail client
 RUN wget https://github.com/papertrail/remote_syslog2/releases/download/v0.18/remote-syslog2_0.18_armhf.deb \
-    && dpkg -i remote-syslog2_0.18_armhf.deb
+    && dpkg -i remote-syslog2_0.18_armhf.deb \
+    && rm remote-syslog2_0.18_armhf.deb
 COPY ./log_files.yml /etc/
 COPY ./papertrail.service /etc/systemd/system/
 
-# Install openSSH and nmap (contains ncat required by papertrail),
+# Setup bluetooth dependencies
+RUN wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - | sudo apt-key add -
+# bluez needs to be patched in order to work with RPi3
+RUN sed -i '1s#^#deb http://archive.raspberrypi.org/debian jessie main\n#' /etc/apt/sources.list
+
+# Install openSSH, nmap (contains ncat required by papertrail) and bluez,
 # remove the apt list to reduce the size of the image
 RUN apt-get update && apt-get install -yq --no-install-recommends \
-    openssh-server nmap && \
+    openssh-server nmap bluez bluez-firmware && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Only allow public-key based ssh login
