@@ -1,0 +1,6 @@
+files:
+  - /data/log/cnavbot
+destination:
+  host:
+  port:
+  protocol: tls
