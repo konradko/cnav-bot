@@ -133,8 +133,8 @@ class TestObstacleSensor(Test):
 
         self.obstacle_sensor.driver.irCentre.assert_called_once()
 
-    def test_front_distance(self):
-        self.obstacle_sensor.front_distance()
+    def test_distance(self):
+        self.obstacle_sensor.distance()
 
         self.obstacle_sensor.driver.getDistance()
 
@@ -160,14 +160,49 @@ class TestLineSensor(Test):
 
 class TestBot(Test):
 
+    def setUp(self):
+        self.bot = api.Bot(speed=20, driver=mock.Mock())
+
     def test__init__(self):
-        bot = api.Bot(speed=20, driver=mock.Mock())
+        assert self.bot.name == settings.BOT_DEFAULT_NAME
+        assert self.bot.motors
+        assert self.bot.motors.speed == 20
+        assert self.bot.lights
+        assert self.bot.obstacle_sensor
+        assert self.bot.line_sensor
+        self.bot.driver.init.assert_called_once()
 
-        assert bot.name == settings.BOT_DEFAULT_NAME
-        assert bot.motors
-        assert bot.motors.speed == 20
-        assert bot.lights
-        assert bot.obstacle_sensor
-        assert bot.line_sensor
-        bot.driver.init.assert_called_once()
+    def test_cleanup(self):
+        self.bot.cleanup()
 
+        self.bot.driver.cleanup.assert_called_once()
+
+    def test_avoid_left_obstacle(self):
+        self.bot.driver.irLeft.side_effect = [True, False]
+
+        self.bot.avoid_left_obstacle()
+
+        self.bot.driver.spinRight.assert_called_once_with(
+            self.bot.motors.speed
+        )
+        self.bot.driver.stop.assert_called_once()
+
+    def test_avoid_right_obstacle(self):
+        self.bot.driver.irRight.side_effect = [True, False]
+
+        self.bot.avoid_right_obstacle()
+
+        self.bot.driver.spinLeft.assert_called_once_with(
+            self.bot.motors.speed
+        )
+        self.bot.driver.stop.assert_called_once()
+
+    def test_avoid_front_obstacle(self):
+        self.bot.driver.getDistance.side_effect = [0.1, 1]
+
+        self.bot.avoid_front_obstacle()
+
+        self.bot.driver.spinRight.assert_called_once_with(
+            self.bot.motors.speed
+        )
+        self.bot.driver.stop.assert_called_once()

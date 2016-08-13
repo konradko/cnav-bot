@@ -96,7 +96,7 @@ class ObstacleSensor(Driver):
         """Returns true if there is an obstacle in front"""
         return self.driver.irCentre()
 
-    def front_distance(self):
+    def distance(self):
         """
         Returns the distance in cm to the nearest reflecting object
         in front of the bot
@@ -123,9 +123,48 @@ class Bot(Driver):
 
     def __init__(self, name=None, speed=None, *args, **kwargs):
         super(Bot, self).__init__(*args, **kwargs)
-        self.name = name or settings.BOT_DEFAULT_NAME
-        self.motors = Motors(speed)
-        self.lights = Lights()
-        self.obstacle_sensor = ObstacleSensor()
-        self.line_sensor = LineSensor()
         self.driver.init()
+        self.name = name or settings.BOT_DEFAULT_NAME
+        self.motors = Motors(speed=speed, driver=self.driver)
+        self.lights = Lights(driver=self.driver)
+        self.obstacle_sensor = ObstacleSensor(driver=self.driver)
+        self.line_sensor = LineSensor(driver=self.driver)
+
+    def cleanup(self):
+        self.driver.cleanup()
+
+    @property
+    def left_obstacle(self):
+        return self.obstacle_sensor.left()
+
+    @property
+    def right_obstacle(self):
+        return self.obstacle_sensor.right()
+
+    @property
+    def distance(self):
+        return self.obstacle_sensor.distance()
+
+    def avoid_left_obstacle(self):
+        while self.left_obstacle:
+            self.motors.spin_right()
+            self.motors.stop()
+
+    def avoid_right_obstacle(self):
+        while self.right_obstacle:
+            self.motors.spin_left()
+            self.motors.stop()
+
+    def avoid_front_obstacle(self):
+        while self.distance <= 0.2:
+            self.motors.spin_right()
+            self.motors.stop()
+
+    def wander(self):
+        while True:
+            self.avoid_left_obstacle()
+            self.avoid_right_obstacle()
+            while not (self.left_obstacle or self.right_obstacle):
+                self.avoid_front_obstacle()
+                self.motors.forward()
+            self.motors.stop()
