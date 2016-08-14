@@ -204,12 +204,39 @@ class TestBot(Test):
         )
         self.bot.motors.keep_running.assert_called_once()
 
-    def test_avoid_front_obstacle(self):
+    def test_avoid_front_obstacle_right_free(self):
         self.bot.driver.irCentre.side_effect = [True, False]
+        self.bot.driver.irRight.return_value = False
+        self.bot.driver.irLeft.side_effect = [True, False]
 
         self.bot.avoid_front_obstacle()
 
         self.bot.driver.spinRight.assert_called_once_with(
+            self.bot.motors.speed
+        )
+
+        self.bot.motors.keep_running.assert_called_once()
+
+    def test_avoid_front_obstacle_left_free(self):
+        self.bot.driver.irCentre.side_effect = [True, False]
+        self.bot.driver.irRight.return_value = True
+        self.bot.driver.irLeft.return_value = False
+
+        self.bot.avoid_front_obstacle()
+
+        self.bot.driver.spinLeft.assert_called_once_with(
+            self.bot.motors.speed
+        )
+        self.bot.motors.keep_running.assert_called_once()
+
+    def test_avoid_front_left_right_obstacles(self):
+        self.bot.driver.irCentre.side_effect = [True, False]
+        self.bot.driver.irRight.return_value = True
+        self.bot.driver.irLeft.return_value = True
+
+        self.bot.avoid_front_obstacle()
+
+        self.bot.driver.reverse.assert_called_once_with(
             self.bot.motors.speed
         )
         self.bot.motors.keep_running.assert_called_once()

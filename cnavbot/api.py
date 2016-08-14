@@ -1,6 +1,6 @@
 import time
 
-from cnavbot import settings
+from cnavbot import settings, logger
 
 
 class Driver(object):
@@ -126,6 +126,10 @@ class LineSensor(Driver):
 
 
 class Bot(Driver):
+    # Number of steps required for 360 spin
+    full_spin_steps = 44
+    # Default number of steps
+    steps = 3
 
     def __init__(
             self, name=None, speed=None, max_distance=None, *args, **kwargs):
@@ -176,34 +180,40 @@ class Bot(Driver):
         return self.obstacle_sensor.distance()
 
     def avoid_left_obstacle(self):
+        step_counter = 0
         while self.left_obstacle:
-            self.motors.right(steps=2)
+            if step_counter >= self.full_spin_steps:
+                logger.warning('Failed to avoid left obstacle')
+                return
+            self.motors.right(steps=self.steps)
+            step_counter += self.steps
 
     def avoid_right_obstacle(self):
+        step_counter = 0
         while self.right_obstacle:
-            self.motors.left(steps=2)
+            if step_counter >= self.full_spin_steps:
+                logger.warning('Failed to avoid right obstacle')
+                return
+            self.motors.left(steps=self.steps)
+            step_counter += self.steps
 
     def avoid_front_obstacle(self):
         while self.front_obstacle:
-            self.motors.right(steps=2)
+            if not self.right_obstacle:
+                self.motors.right(steps=self.steps)
+            elif not self.left_obstacle:
+                self.motors.left(steps=self.steps)
+            else:
+                self.motors.reverse(steps=self.steps)
 
     def avoid_obstacles(self):
-        counter = 0
-
         while self.any_obstacle:
-            # If avoiding obstcles did not work for
-            if counter > 10:
-                self.motors.step_reverse(steps=2)
-                counter = 0
-
             self.avoid_front_obstacle()
             self.avoid_left_obstacle()
             self.avoid_right_obstacle()
-
-            counter += 1
 
     def wander(self):
         while True:
             self.avoid_obstacles()
             self.motors.forward()
-            self.motors.keep_running(steps=1)
+            self.motors.keep_running(steps=self.steps)
