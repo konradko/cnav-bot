@@ -18,9 +18,10 @@ fi
 service ssh start
 
 # Papertrail
+mkdir -p /data/log/
 sed -i "s/host:/host: $PAPERTRAIL_HOST/" /etc/log_files.yml
 sed -i "s/port:/port: $PAPERTRAIL_PORT/" /etc/log_files.yml
-sed -i "s/LOG_PATH/$LOG_PATH/" /etc/log_files.yml
+sed -i "s#BOT_LOG_PATH#$BOT_LOG_PATH#" /etc/log_files.yml
 sed -i "s/host port/$PAPERTRAIL_HOST $PAPERTRAIL_PORT/" /etc/systemd/system/papertrail.service
 
 systemctl enable /etc/systemd/system/papertrail.service

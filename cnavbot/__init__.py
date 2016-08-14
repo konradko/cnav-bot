@@ -16,7 +16,7 @@ dictConfig({
     'handlers': {
         'rotating_file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': settings.LOG_PATH,
+            'filename': settings.BOT_LOG_PATH,
             'maxBytes': 10 * 1024 * 1024,
             'backupCount': 5,
             'formatter': 'formatter',

@@ -1,5 +1,5 @@
 files:
-  - LOG_PATH
+  - BOT_LOG_PATH
 destination:
   host:
   port:

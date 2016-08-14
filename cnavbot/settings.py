@@ -3,8 +3,6 @@ import os
 from raven import Client
 
 
-LOG_PATH = os.environ.get('LOG_PATH', '/tmp/cnavbot.log')
-
 _, HOSTNAME, _, _, MACHINE = os.uname()
 RUNNING_ON_PI = (
     HOSTNAME.startswith('raspberrypi') and MACHINE.startswith('arm')
@@ -21,6 +19,7 @@ else:
 BOT_DEFAULT_SPEED = int(os.getenv('BOT_DEFAULT_SPEED', 30))
 BOT_DEFAULT_NAME = os.getenv('BOT_DEFAULT_NAME', HOSTNAME)
 BOT_DEFAULT_MAX_DISTANCE = int(os.getenv('BOT_DEFAULT_MAX_DISTANCE', 10))
+BOT_LOG_PATH = os.environ.get('BOT_LOG_PATH', '/tmp/cnavbot.log')
 
 SENTRY_DSN = os.environ.get('SENTRY_DSN', '')
 SENTRY_CLIENT = Client(SENTRY_DSN) if SENTRY_DSN else None
