@@ -30,3 +30,8 @@ modprobe bcm2835-v4l2
 
 # pi2go
 modprobe i2c-dev
+
+# Bluetooth
+/usr/bin/hciattach /dev/ttyAMA0 bcm43xx 921600 noflow -
+hciconfig hci0 up
+

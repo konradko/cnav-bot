@@ -1,3 +1,4 @@
 -e git+https://git@github.com/konradko/pi2go.git@master#egg=pi2go
+-e git+https://git@github.com/konradko/iBeacon-scanner.git@master#egg=ibeaconscanner
 picamera
 raven

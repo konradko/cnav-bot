@@ -12,14 +12,14 @@ COPY ./log_files.yml /etc/
 COPY ./papertrail.service /etc/systemd/system/
 
 # Setup bluetooth dependencies
-RUN wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - | sudo apt-key add -
+# RUN wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - | sudo apt-key add -
 # bluez needs to be patched in order to work with RPi3
-RUN sed -i '1s#^#deb http://archive.raspberrypi.org/debian jessie main\n#' /etc/apt/sources.list
+# RUN sed -i '1s#^#deb http://archive.raspberrypi.org/debian jessie main\n#' /etc/apt/sources.list
 
-# Install openSSH, nmap (contains ncat required by papertrail) and bluez,
+# Install openSSH, nmap (contains ncat required by papertrail) and bluetooth,
 # remove the apt list to reduce the size of the image
 RUN apt-get update && apt-get install -yq --no-install-recommends \
-    openssh-server nmap bluez bluez-firmware && \
+    openssh-server nmap bluez bluez-firmware libbluetooth-dev && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Only allow public-key based ssh login
