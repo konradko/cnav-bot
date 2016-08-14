@@ -142,7 +142,7 @@ class TestObstacleSensor(Test):
     def test_distance(self):
         self.obstacle_sensor.distance()
 
-        self.obstacle_sensor.driver.getDistance()
+        self.obstacle_sensor.driver.getDistance.assert_called_once()
 
     def test_any(self):
         self.obstacle_sensor.any()
@@ -213,3 +213,24 @@ class TestBot(Test):
             self.bot.motors.speed
         )
         self.bot.motors.keep_running.assert_called_once()
+
+    def test_switch_pressed(self):
+        self.bot.driver.getSwitch.return_value = True
+        return_value = self.bot.switch_pressed
+
+        assert return_value
+        self.bot.driver.getSwitch.assert_called_once_with()
+
+    @mock.patch('time.sleep')
+    def test_wait_till_switch_pressed(self, time_mock):
+        self.bot.driver.getSwitch.side_effect = [False, True]
+
+        self.bot.wait_till_switch_pressed()
+
+        self.bot.driver.getSwitch.assert_called()
+        time_mock.assert_called()
+
+    def test_distance(self):
+        self.bot.distance
+
+        self.bot.obstacle_sensor.driver.getDistance.assert_called_once()

@@ -144,7 +144,7 @@ class Bot(Driver):
 
     @property
     def switch_pressed(self):
-        self.driver.getSwitch()
+        return self.driver.getSwitch()
 
     def wait_till_switch_pressed(self):
         while True:
