@@ -1,5 +1,5 @@
 files:
-  - /data/log/cnavbot
+  - LOG_PATH
 destination:
   host:
   port:
