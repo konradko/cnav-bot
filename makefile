@@ -13,10 +13,6 @@ run_on_rpi:
 	./init.sh
 	python cnavbot/main.py
 
-test_in_docker:
-	docker-compose -f docker-compose.test.yml build --pull
-	docker-compose -f docker-compose.test.yml run test
-
 install_test_requirements:
 	pip install --upgrade pip
 	pip install pip-tools
