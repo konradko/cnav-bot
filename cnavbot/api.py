@@ -211,7 +211,7 @@ class Bot(Driver):
     @property
     def any_obstacle(self):
         return any((
-            self.front_obstacle_close,
+            self.front_obstacle,
             self.left_obstacle,
             self.right_obstacle
         ))
@@ -241,14 +241,15 @@ class Bot(Driver):
             step_counter += self.steps
 
     def avoid_front_obstacle(self):
-        while self.front_obstacle_close:
+        while self.front_obstacle:
             logger.info('Avoiding front obstacle')
             if not self.right_obstacle:
                 self.motors.right(steps=self.steps)
             elif not self.left_obstacle:
                 self.motors.left(steps=self.steps)
             else:
-                self.motors.reverse(steps=self.steps)
+                while self.front_obstacle_close:
+                    self.motors.reverse(steps=self.steps)
 
     def avoid_obstacles(self):
         while self.any_obstacle:
