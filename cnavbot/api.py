@@ -15,6 +15,7 @@ class Motors(Driver):
         super(Motors, self).__init__(*args, **kwargs)
         self.speed = speed or settings.BOT_DEFAULT_SPEED
         self.validate_speed(self.speed)
+        logger.info('Speed set to {}'.format(self.speed))
 
     @staticmethod
     def validate_speed(speed):
@@ -27,6 +28,7 @@ class Motors(Driver):
 
     def forward(self, steps=None):
         """Sets both motors to go forward"""
+        logger.info('Going forward')
         self.driver.forward(self.speed)
 
         if steps:
@@ -34,6 +36,7 @@ class Motors(Driver):
 
     def reverse(self, steps=None):
         """Sets both motors to reverse"""
+        logger.info('Reversing')
         self.driver.reverse(self.speed)
 
         if steps:
@@ -41,6 +44,7 @@ class Motors(Driver):
 
     def left(self, steps=None):
         """Sets motors to turn opposite directions for left spin"""
+        logger.info('Spinning left')
         self.driver.spinLeft(self.speed)
 
         if steps:
@@ -48,16 +52,19 @@ class Motors(Driver):
 
     def right(self, steps=None):
         """Sets motors to turn opposite directions for right spin"""
+        logger.info('Spinning right')
         self.driver.spinRight(self.speed)
 
         if steps:
             self.keep_running(steps)
 
     def keep_running(self, steps):
+        logger.info('Keeping running for {} steps'.format(steps))
         time.sleep(0.1 * steps)
         self.stop()
 
     def stop(self):
+        logger.info('Stopping')
         self.driver.stop()
 
 
@@ -76,6 +83,9 @@ class Lights(Driver):
     def set_led_rbg(self, led_number, red, blue, green):
         """Spins right specified number of steps"""
         self.validate_led_number(led_number)
+        logger.info('Setting LED {} to red: {}, green: {}. blue: {}'.format(
+            led_number, red, green, blue
+        ))
         self.driver.setLED(led_number, red, green, blue)
 
     def set_all_leds_rbg(self, red, blue, green):
@@ -89,43 +99,60 @@ class ObstacleSensor(Driver):
     def __init__(self, max_distance=None, *args, **kwargs):
         super(ObstacleSensor, self).__init__(*args, **kwargs)
         self.max_distance = max_distance or settings.BOT_DEFAULT_MAX_DISTANCE
+        logger.info('Max distance set to {}'.format(self.max_distance))
 
     def left(self):
         """Returns true if there is an obstacle to the left"""
-        return self.driver.irLeft()
+        obstacle = self.driver.irLeft()
+        logger.info('Left obstacle: {}'.format(obstacle))
+        return obstacle
 
     def right(self):
         """Returns true if there is an obstacle to the right"""
-        return self.driver.irRight()
+        obstacle = self.driver.irRight()
+        logger.info('Right obstacle: {}'.format(obstacle))
+        return obstacle
 
     def front(self):
         """Returns true if there is an obstacle in front"""
-        return self.driver.irCentre()
+        obstacle = self.driver.irCentre()
+        logger.info('Front obstacle: {}'.format(obstacle))
+        return obstacle
 
     def front_close(self):
-        return self.distance() <= self.max_distance
+        front_close = self.distance() <= self.max_distance
+        logger.info('Front obstacle close: {}'.format(front_close))
+        return front_close
 
     def distance(self):
         """
         Returns the distance in cm to the nearest reflecting object
         in front of the bot
         """
-        return self.driver.getDistance()
+        distance = self.driver.getDistance()
+        logger.info('Distance: {}'.format(distance))
+        return distance
 
     def any(self):
         """Returns true if there is any obstacle"""
-        return self.driver.irAll()
+        any_obstacle = self.driver.irAll()
+        logger.info('Any obstacle: {}'.format(any_obstacle))
+        return any_obstacle
 
 
 class LineSensor(Driver):
 
     def left(self):
         """Returns the state of the left line sensor"""
-        return self.driver.irLeftLine()
+        left = self.driver.irLeftLine()
+        logger.info('Left line: {}'.format(left))
+        return left
 
     def right(self):
         """Returns the state of the right line sensor"""
-        return self.driver.irRightLine()
+        right = self.driver.irRightLine()
+        logger.info('Right line: {}'.format(right))
+        return right
 
 
 class Bot(Driver):
@@ -139,6 +166,7 @@ class Bot(Driver):
         super(Bot, self).__init__(*args, **kwargs)
         self.driver.init()
         self.name = name or settings.BOT_DEFAULT_NAME
+        logger.info('Bot name set to: {}'.format(self.name))
         self.motors = Motors(speed=speed, driver=self.driver)
         self.lights = Lights(driver=self.driver)
         self.line_sensor = LineSensor(driver=self.driver)
@@ -147,14 +175,18 @@ class Bot(Driver):
         )
 
     def cleanup(self):
+        logger.info('Cleaning up')
         self.driver.cleanup()
 
     @property
     def switch_pressed(self):
-        return self.driver.getSwitch()
+        switch_pressed = self.driver.getSwitch()
+        logger.info('Switch pressed: {}'.format(switch_pressed))
+        return switch_pressed
 
     def wait_till_switch_pressed(self):
         while True:
+            logger.info('Waiting for switch to be pressed')
             if self.switch_pressed:
                 return
             else:
@@ -178,9 +210,11 @@ class Bot(Driver):
 
     @property
     def any_obstacle(self):
-        return any(
-            (self.front_obstacle, self.left_obstacle, self.right_obstacle)
-        )
+        return any((
+            self.front_obstacle_close,
+            self.left_obstacle,
+            self.right_obstacle
+        ))
 
     @property
     def distance(self):
@@ -189,6 +223,7 @@ class Bot(Driver):
     def avoid_left_obstacle(self):
         step_counter = 0
         while self.left_obstacle:
+            logger.info('Avoiding left obstacle')
             if step_counter >= self.full_spin_steps:
                 logger.warning('Failed to avoid left obstacle')
                 return
@@ -198,6 +233,7 @@ class Bot(Driver):
     def avoid_right_obstacle(self):
         step_counter = 0
         while self.right_obstacle:
+            logger.info('Avoiding right obstacle')
             if step_counter >= self.full_spin_steps:
                 logger.warning('Failed to avoid right obstacle')
                 return
@@ -206,6 +242,7 @@ class Bot(Driver):
 
     def avoid_front_obstacle(self):
         while self.front_obstacle_close:
+            logger.info('Avoiding front obstacle')
             if not self.right_obstacle:
                 self.motors.right(steps=self.steps)
             elif not self.left_obstacle:
@@ -215,12 +252,14 @@ class Bot(Driver):
 
     def avoid_obstacles(self):
         while self.any_obstacle:
+            logger.info('Avoiding obstacles')
             self.avoid_front_obstacle()
             self.avoid_left_obstacle()
             self.avoid_right_obstacle()
 
     def wander(self):
         while True:
+            logger.info('Wandering')
             self.avoid_obstacles()
             self.motors.forward()
             self.motors.keep_running(steps=self.steps)
