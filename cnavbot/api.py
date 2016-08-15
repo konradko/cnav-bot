@@ -102,6 +102,9 @@ class ObstacleSensor(Driver):
         """Returns true if there is an obstacle in front"""
         return self.driver.irCentre()
 
+    def front_close(self):
+        return self.distance() <= self.max_distance
+
     def distance(self):
         """
         Returns the distance in cm to the nearest reflecting object
@@ -162,6 +165,10 @@ class Bot(Driver):
         return self.obstacle_sensor.front()
 
     @property
+    def front_obstacle_close(self):
+        return self.obstacle_sensor.front_close()
+
+    @property
     def left_obstacle(self):
         return self.obstacle_sensor.left()
 
@@ -198,7 +205,7 @@ class Bot(Driver):
             step_counter += self.steps
 
     def avoid_front_obstacle(self):
-        while self.front_obstacle:
+        while self.front_obstacle_close:
             if not self.right_obstacle:
                 self.motors.right(steps=self.steps)
             elif not self.left_obstacle:

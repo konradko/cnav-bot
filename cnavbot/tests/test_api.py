@@ -205,7 +205,10 @@ class TestBot(Test):
         self.bot.motors.keep_running.assert_called_once()
 
     def test_avoid_front_obstacle_right_free(self):
-        self.bot.driver.irCentre.side_effect = [True, False]
+        self.bot.driver.getDistance.side_effect = [
+            self.bot.obstacle_sensor.max_distance - 1,
+            self.bot.obstacle_sensor.max_distance + 1,
+        ]
         self.bot.driver.irRight.return_value = False
         self.bot.driver.irLeft.side_effect = [True, False]
 
@@ -218,7 +221,10 @@ class TestBot(Test):
         self.bot.motors.keep_running.assert_called_once()
 
     def test_avoid_front_obstacle_left_free(self):
-        self.bot.driver.irCentre.side_effect = [True, False]
+        self.bot.driver.getDistance.side_effect = [
+            self.bot.obstacle_sensor.max_distance - 1,
+            self.bot.obstacle_sensor.max_distance + 1,
+        ]
         self.bot.driver.irRight.return_value = True
         self.bot.driver.irLeft.return_value = False
 
@@ -230,7 +236,10 @@ class TestBot(Test):
         self.bot.motors.keep_running.assert_called_once()
 
     def test_avoid_front_left_right_obstacles(self):
-        self.bot.driver.irCentre.side_effect = [True, False]
+        self.bot.driver.getDistance.side_effect = [
+            self.bot.obstacle_sensor.max_distance - 1,
+            self.bot.obstacle_sensor.max_distance + 1,
+        ]
         self.bot.driver.irRight.return_value = True
         self.bot.driver.irLeft.return_value = True
 
