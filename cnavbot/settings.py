@@ -8,12 +8,20 @@ RUNNING_ON_PI = (
     HOSTNAME.startswith('raspberrypi') and MACHINE.startswith('arm')
 )
 
-# RPi.GPIO python lib required by pi2go can only be imported on a Raspberry Pi
+# Driver libs can only be installed on RPi
 if RUNNING_ON_PI:
     from pi2go import pi2go  # noqa
     BOT_DRIVER = pi2go
+
+    import bluetooth  # noqa
+    BLUETOOTH_DRIVER = bluetooth._bluetooth
+
+    from ibeaconscanner import blescan  # noqa
+    IBEACON_SCANNER = blescan
 else:
     BOT_DRIVER = None
+    BLUETOOTH_DRIVER = None
+    IBEACON_SCANNER = None
 
 # Must be between 0 and 100
 BOT_DEFAULT_SPEED = int(os.getenv('BOT_DEFAULT_SPEED', 30))

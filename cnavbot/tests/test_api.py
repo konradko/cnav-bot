@@ -7,7 +7,7 @@ from cnavbot import api, settings
 
 
 class Test(TestCase):
-    bot = api.Bot(driver=mock.Mock())
+    pass
 
 
 class TestMotors(Test):
@@ -167,8 +167,10 @@ class TestLineSensor(Test):
 class TestBot(Test):
 
     def setUp(self):
-        self.bot = api.Bot(speed=20, driver=mock.Mock())
-        self.bot.motors.keep_running = mock.Mock()
+        with mock.patch('cnavbot.settings.BLUETOOTH_DRIVER'):
+            with mock.patch('cnavbot.settings.IBEACON_SCANNER'):
+                self.bot = api.Bot(speed=20, driver=mock.Mock())
+                self.bot.motors.keep_running = mock.Mock()
 
     def test__init__(self):
         assert self.bot.name == settings.BOT_DEFAULT_NAME

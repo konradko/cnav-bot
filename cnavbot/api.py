@@ -155,6 +155,23 @@ class LineSensor(Driver):
         return right
 
 
+class Bluetooth(object):
+
+    def __init__(self, driver=None, scanner=None, *args, **kwargs):
+        self.driver = driver or settings.BLUETOOTH_DRIVER
+        self.scanner = scanner or settings.IBEACON_SCANNER
+        try:
+            self.socket = self.driver.hci_open_dev(0)
+            self.scanner.hci_le_set_scan_parameters(self.socket)
+            self.scanner.hci_enable_le_scan(self.socket)
+        except:
+            logger.exception("Failed to initialise Bluetooth")
+
+    def scan(self):
+        """Scan for nearby bluetooth devices"""
+        return self.scanner.parse_events(self.socket, 10)
+
+
 class Bot(Driver):
     # Number of steps required for 360 spin
     full_spin_steps = 44
@@ -173,6 +190,7 @@ class Bot(Driver):
         self.obstacle_sensor = ObstacleSensor(
             max_distance=max_distance, driver=self.driver
         )
+        self.bluetooth = Bluetooth()
 
     def cleanup(self):
         logger.info('Cleaning up')
