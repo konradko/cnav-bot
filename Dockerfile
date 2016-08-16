@@ -16,10 +16,10 @@ COPY ./papertrail.service /etc/systemd/system/
 # bluez needs to be patched in order to work with RPi3
 # RUN sed -i '1s#^#deb http://archive.raspberrypi.org/debian jessie main\n#' /etc/apt/sources.list
 
-# Install openSSH, nmap (contains ncat required by papertrail) and bluetooth,
+# Install openSSH, nmap (contains ncat required by papertrail), bluetooth and opencv
 # remove the apt list to reduce the size of the image
 RUN apt-get update && apt-get install -yq --no-install-recommends \
-    openssh-server nmap bluez bluez-firmware libbluetooth-dev && \
+    openssh-server nmap bluez bluez-firmware libbluetooth-dev libopencv-dev python-opencv && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Only allow public-key based ssh login
