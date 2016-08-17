@@ -197,6 +197,14 @@ class Bot(Driver):
         self.driver.cleanup()
 
     @property
+    def left_line(self):
+        return self.line_sensor.left()
+
+    @property
+    def right_line(self):
+        return self.line_sensor.right()
+
+    @property
     def switch_pressed(self):
         switch_pressed = self.driver.getSwitch()
         logger.info('Switch pressed: {}'.format(switch_pressed))
@@ -277,8 +285,23 @@ class Bot(Driver):
             self.avoid_right_obstacle()
 
     def wander(self):
+        logger.info('Wandering')
+        self.avoid_obstacles()
+        self.motors.forward()
+        self.motors.keep_running(steps=self.steps)
+
+    def wander_continuously(self):
         while True:
-            logger.info('Wandering')
-            self.avoid_obstacles()
+            self.wander()
+
+    def follow_line(self):
+        if self.left_line and self.right_line:
             self.motors.forward()
-            self.motors.keep_running(steps=self.steps)
+        elif self.left_line:
+            self.motors.right()
+        elif self.right_line:
+            self.motors.left()
+
+    def follow_line_continuously(self):
+        while True:
+            self.follow_line()

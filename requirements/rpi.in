@@ -2,4 +2,3 @@
 -e git+https://git@github.com/konradko/iBeacon-scanner.git@master#egg=ibeaconscanner
 picamera
 raven
-numpy
