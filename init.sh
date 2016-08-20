@@ -39,4 +39,4 @@ modprobe i2c-dev
 hciconfig hci0 up
 
 # prometheus
-bash /prometheus/start.sh
+bash /usr/src/app/prometheus/start.sh

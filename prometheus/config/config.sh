@@ -1,6 +1,7 @@
 # Replace all ENVARS in all config files
-find /etc/config -type f -exec sed -i -e s/GMAIL_ACCOUNT/${GMAIL_ACCOUNT}/g \
--e s/GMAIL_AUTH_TOKEN/${GMAIL_AUTH_TOKEN}/g \
+find /etc/config -type f -exec sed -i -e s/SMTP_ACCOUNT/${SMTP_ACCOUNT}/g \
+-e s/SMTP_PASSWORD/${SMTP_PASSWORD}/g \
+-e s/SMTP_HOST/${SMTP_HOST}/g \
 -e s/THRESHOLD_CPU/${THRESHOLD_CPU}/g \
 -e s/THRESHOLD_MEM/${THRESHOLD_MEM}/g \
 -e s/THRESHOLD_FS/${THRESHOLD_FS}/g \
