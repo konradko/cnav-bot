@@ -11,4 +11,4 @@ cd /etc/prometheus-$PROMETHEUS_VERSION.$DIST_ARCH \
   -alertmanager.url "http://localhost:9093" &
 # Load configs from envars && start alertmanager
 cd /etc/alertmanager-$ALERTMANAGER_VERSION.$DIST_ARCH \
-  && ./alertmanager -config.file=alertmanager.yml
+  && ./alertmanager -config.file=alertmanager.yml &
