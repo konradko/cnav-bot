@@ -1,6 +1,20 @@
 #!/bin/bash
 
+# Papertrail
+echo "Setting up Papertrail"
+mkdir -p /data/log/
+sed -i "s/host:/host: $PAPERTRAIL_HOST/" /etc/log_files.yml
+sed -i "s/port:/port: $PAPERTRAIL_PORT/" /etc/log_files.yml
+sed -i "s#BOT_LOG_PATH#$BOT_LOG_PATH#" /etc/log_files.yml
+sed -i "s/host port/$PAPERTRAIL_HOST $PAPERTRAIL_PORT/" /etc/systemd/system/papertrail.service
+
+systemctl enable /etc/systemd/system/papertrail.service
+echo "Starting Papertrail"
+systemctl start papertrail.service
+remote_syslog
+
 # OpenSSH
+echo "Setting up OpenSSH"
 mkdir -p ~/.ssh
 # CLIENT_PUBKEY is set via resin.io env vars
 echo $CLIENT_PUBKEY | tee -a ~/.ssh/authorized_keys
@@ -14,29 +28,22 @@ else
     cp /etc/ssh/ssh_host_*_key* /data/ssh/
 
 fi
-
+echo "Starting OpenSSH"
 service ssh start
 
-# Papertrail
-mkdir -p /data/log/
-sed -i "s/host:/host: $PAPERTRAIL_HOST/" /etc/log_files.yml
-sed -i "s/port:/port: $PAPERTRAIL_PORT/" /etc/log_files.yml
-sed -i "s#BOT_LOG_PATH#$BOT_LOG_PATH#" /etc/log_files.yml
-sed -i "s/host port/$PAPERTRAIL_HOST $PAPERTRAIL_PORT/" /etc/systemd/system/papertrail.service
-
-systemctl enable /etc/systemd/system/papertrail.service
-systemctl start papertrail.service
-remote_syslog
-
 # Picamera
+echo "Enabling Picamera"
 modprobe bcm2835-v4l2
 
 # pi2go
+echo "Enabling pi2go"
 modprobe i2c-dev
 
 # Bluetooth
+echo "Enabling Bluetooth"
 /usr/bin/hciattach /dev/ttyAMA0 bcm43xx 921600 noflow -
 hciconfig hci0 up
 
-# prometheus
+# Prometheus
+echo "Starting Prometheus"
 bash /usr/src/app/prometheus/start.sh
