@@ -23,7 +23,7 @@ else:
     BLUETOOTH_DRIVER = None
     IBEACON_SCANNER = None
 
-# 'wander'(roam freely) or 'follow' (follow line)
+# 'wander' (roam freely) or 'follow' (follow line)
 BOT_MODE_WANDER = 'wander'
 BOT_MODE_FOLLOW = 'follow'
 BOT_MODE = os.getenv('BOT_MODE', BOT_MODE_WANDER)

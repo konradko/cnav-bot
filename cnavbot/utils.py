@@ -14,6 +14,13 @@ def cleanup(bot):
     finally:
         bot.cleanup()
 
+@contextmanager
+def close_socket(socket):
+    try:
+        yield socket
+    finally:
+        socket.close()
+
 
 def sentry(func):
     """

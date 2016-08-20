@@ -1,6 +1,6 @@
 import time
 
-from cnavbot import settings, logger
+from cnavbot import settings, logger, utils
 
 
 class Driver(object):
@@ -160,16 +160,19 @@ class Bluetooth(object):
     def __init__(self, driver=None, scanner=None, *args, **kwargs):
         self.driver = driver or settings.BLUETOOTH_DRIVER
         self.scanner = scanner or settings.IBEACON_SCANNER
-        try:
-            self.socket = self.driver.hci_open_dev(0)
-            self.scanner.hci_le_set_scan_parameters(self.socket)
-            self.scanner.hci_enable_le_scan(self.socket)
-        except:
-            logger.exception("Failed to initialise Bluetooth")
 
     def scan(self):
         """Scan for nearby bluetooth devices"""
-        return self.scanner.parse_events(self.socket, 10)
+        try:
+            with utils.close_socket(self.driver.hci_open_dev(0)) as socket:
+                socket = self.driver.hci_open_dev(0)
+                self.scanner.hci_le_set_scan_parameters(socket)
+                self.scanner.hci_enable_le_scan(socket)
+                results = self.scanner.parse_events(socket, loop_count=1)
+        except:
+            logger.exception("Failed to initialise Bluetooth")
+        else:
+            return results
 
 
 class Bot(Driver):
