@@ -11,16 +11,42 @@ RUN wget https://github.com/papertrail/remote_syslog2/releases/download/v0.18/re
 COPY ./log_files.yml /etc/
 COPY ./papertrail.service /etc/systemd/system/
 
-# Setup bluetooth dependencies
-# RUN wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - | sudo apt-key add -
-# bluez needs to be patched in order to work with RPi3
-# RUN sed -i '1s#^#deb http://archive.raspberrypi.org/debian jessie main\n#' /etc/apt/sources.list
-
 # Install openSSH, nmap (contains ncat required by papertrail), bluetooth and opencv
 # remove the apt list to reduce the size of the image
 RUN apt-get update && apt-get install -yq --no-install-recommends \
-    openssh-server nmap bluez bluez-firmware libbluetooth-dev libopencv-dev python-opencv && \
+    openssh-server nmap bluez bluez-firmware libbluetooth-dev \
+    libopencv-dev python-opencv build-essential libc6-dev && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Prometheus
+
+ENV PROMETHEUS_VERSION 0.20.0
+ENV NODE_EXPORTER_VERSION 0.12.0
+ENV ALERTMANAGER_VERSION 0.2.0
+ENV DIST_ARCH linux-armv7
+
+# default configs
+ENV THRESHOLD_CPU 50
+ENV THRESHOLD_FS 50
+ENV THRESHOLD_MEM 500
+ENV STORAGE_LOCAL_RETENTION 360h0m0s
+
+# prometheus server
+RUN wget https://github.com/prometheus/prometheus/releases/download/$PROMETHEUS_VERSION/prometheus-$PROMETHEUS_VERSION.$DIST_ARCH.tar.gz  \
+    && tar xvfz prometheus-$PROMETHEUS_VERSION.$DIST_ARCH.tar.gz \
+    && rm prometheus-$PROMETHEUS_VERSION.$DIST_ARCH.tar.gz
+
+# prometheus alertmanager
+RUN wget https://github.com/prometheus/alertmanager/releases/download/$ALERTMANAGER_VERSION/alertmanager-$ALERTMANAGER_VERSION.$DIST_ARCH.tar.gz  \
+    && tar xvfz alertmanager-$ALERTMANAGER_VERSION.$DIST_ARCH.tar.gz \
+    && rm alertmanager-$ALERTMANAGER_VERSION.$DIST_ARCH.tar.gz
+
+# node exporter
+RUN wget https://github.com/prometheus/node_exporter/releases/download/$NODE_EXPORTER_VERSION/node_exporter-$NODE_EXPORTER_VERSION.$DIST_ARCH.tar.gz  \
+    && tar xvfz node_exporter-$NODE_EXPORTER_VERSION.$DIST_ARCH.tar.gz \
+    && rm node_exporter-$NODE_EXPORTER_VERSION.$DIST_ARCH.tar.gz
+
+COPY prometheus/config/ /etc/config
 
 # Only allow public-key based ssh login
 RUN sed -i 's/UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
