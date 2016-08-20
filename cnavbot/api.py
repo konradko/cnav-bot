@@ -1,3 +1,4 @@
+import os
 import time
 
 from cnavbot import settings, logger, utils
@@ -160,6 +161,9 @@ class Bluetooth(object):
     def __init__(self, driver=None, scanner=None, *args, **kwargs):
         self.driver = driver or settings.BLUETOOTH_DRIVER
         self.scanner = scanner or settings.IBEACON_SCANNER
+
+    def init_device(self):
+        os.system('bash {}'.format(settings.BLUETOOTH_INIT_SCRIPT))
 
     def scan(self):
         """Scan for nearby bluetooth devices"""

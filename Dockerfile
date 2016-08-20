@@ -45,7 +45,7 @@ RUN wget https://github.com/prometheus/node_exporter/releases/download/$NODE_EXP
     && tar xvfz node_exporter-$NODE_EXPORTER_VERSION.$DIST_ARCH.tar.gz \
     && rm node_exporter-$NODE_EXPORTER_VERSION.$DIST_ARCH.tar.gz
 
-COPY config/prometheus/config/ /etc/config
+COPY config/prometheus/ /etc/config
 
 # Set app working directory
 WORKDIR /usr/src/app

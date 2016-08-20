@@ -2,6 +2,7 @@ import os
 
 from raven import Client
 
+PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
 
 _, HOSTNAME, _, _, MACHINE = os.uname()
 RUNNING_ON_PI = (
@@ -22,6 +23,10 @@ else:
     BOT_DRIVER = None
     BLUETOOTH_DRIVER = None
     IBEACON_SCANNER = None
+
+BLUETOOTH_INIT_SCRIPT = os.path.join(
+    PROJECT_ROOT, '..', 'config', 'bluetooth.sh'
+)
 
 # 'wander' (roam freely) or 'follow' (follow line)
 BOT_MODE_WANDER = 'wander'
