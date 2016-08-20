@@ -23,6 +23,18 @@ else:
     BLUETOOTH_DRIVER = None
     IBEACON_SCANNER = None
 
+# 'wander'(roam freely) or 'follow' (follow line)
+BOT_MODE_WANDER = 'wander'
+BOT_MODE_FOLLOW = 'follow'
+BOT_MODE = os.getenv('BOT_MODE', BOT_MODE_WANDER)
+BOT_IN_WANDER_MODE = False
+BOT_IN_FOLLOW_MODE = False
+
+if BOT_MODE == BOT_MODE_WANDER:
+    BOT_IN_WANDER_MODE = True
+elif BOT_MODE == BOT_MODE_FOLLOW:
+    BOT_IN_FOLLOW_MODE = True
+
 # Must be between 0 and 100
 BOT_DEFAULT_SPEED = int(os.getenv('BOT_DEFAULT_SPEED', 30))
 BOT_DEFAULT_NAME = os.getenv('BOT_DEFAULT_NAME', HOSTNAME)

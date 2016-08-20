@@ -6,7 +6,10 @@ def run():
     logger.info("Starting...")
     with utils.cleanup(api.Bot()) as bot:
         bot.wait_till_switch_pressed()
-        bot.follow_line_continuously()
+        if settings.BOT_IN_WANDER_MODE:
+            bot.wander_continuously()
+        if settings.BOT_IN_FOLLOW_MODE:
+            bot.follow_line_continuously()
     logger.info("Done")
 
 
