@@ -4,9 +4,10 @@ bash /etc/config/config.sh
 cd /etc/node_exporter-$NODE_EXPORTER_VERSION.$DIST_ARCH \
   && ./node_exporter &
 # Start prometheus server
+mkdir -p /data/prometheus
 cd /etc/prometheus-$PROMETHEUS_VERSION.$DIST_ARCH \
   && ./prometheus -web.listen-address ":80" \
-  -storage.local.path "/data" -storage.local.retention ${STORAGE_LOCAL_RETENTION} \
+  -storage.local.path "/data/prometheus" -storage.local.retention ${STORAGE_LOCAL_RETENTION} \
   -alertmanager.url "http://localhost:9093" &
 # Load configs from envars && start alertmanager
 cd /etc/alertmanager-$ALERTMANAGER_VERSION.$DIST_ARCH \
