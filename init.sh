@@ -13,4 +13,4 @@ echo "Enabling pi2go"
 modprobe i2c-dev
 
 echo "Starting Prometheus"
-bash /usr/src/app/config/prometheus/prometheus.sh
+bash /usr/src/app/config/prometheus.sh

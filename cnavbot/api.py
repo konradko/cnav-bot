@@ -3,7 +3,7 @@ from multiprocessing import Process, Array
 import os
 import time
 
-from cnavbot import settings, logger, utils
+from cnavbot import settings, logger
 
 
 class Driver(object):
@@ -161,36 +161,36 @@ class LineSensor(Driver):
 class Bluetooth(object):
 
     def __init__(self, driver=None, scanner=None, *args, **kwargs):
-        scan_results_length = 10
-        self._scan_results = Array(c_char_p, scan_results_length)
-        driver = driver or settings.BLUETOOTH_DRIVER
-        scanner = scanner or settings.IBEACON_SCANNER
-        self.start_scanning(driver, scanner, scan_results_length)
+        self.scan_results_length = 10
+        self._scan_results = Array(c_char_p, self.scan_results_length)
+        self.driver = driver or settings.BLUETOOTH_DRIVER
+        self.scanner = scanner or settings.IBEACON_SCANNER
+        self.start_scanning()
 
-    def start_scanning(self, driver, scanner, scan_results_length):
+    def start_scanning(self):
         scanning = Process(
             target=self.scan_continuously,
-            args=(driver, scanner, self._scan_results, scan_results_length)
+            args=(self._scan_results, )
         )
         scanning.start()
 
-    def scan_continuously(driver, scanner, scan_results, scan_results_length):
+    def scan_continuously(self, scan_results):
         """Scan for nearby bluetooth devices"""
         try:
             # Init bluetooth device
             os.system(settings.BLUETOOTH_INIT_SCRIPT)
-            socket = driver.hci_open_dev(0)
-            scanner.hci_le_set_scan_parameters(socket)
-            scanner.hci_enable_le_scan(socket)
+            socket = self.driver.hci_open_dev(0)
+            self.scanner.hci_le_set_scan_parameters(socket)
+            self.scanner.hci_enable_le_scan(socket)
         except:
             logger.exception("Failed to scan with Bluetooth")
         else:
             while True:
                 time.sleep(settings.BLUETOOTH_SCAN_INTERVAL)
-                results = scanner.parse_events(
-                    socket, loop_count=scan_results_length
+                results = self.scanner.parse_events(
+                    socket, loop_count=self.scan_results_length
                 )
-                for i in range(scan_results_length):
+                for i in range(self.scan_results_length):
                     scan_results[i] = results[i]
 
     @property
