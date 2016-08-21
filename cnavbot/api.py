@@ -1,3 +1,5 @@
+from ctypes import c_char_p
+from multiprocessing import Process, Array
 import os
 import time
 
@@ -159,24 +161,41 @@ class LineSensor(Driver):
 class Bluetooth(object):
 
     def __init__(self, driver=None, scanner=None, *args, **kwargs):
-        self.driver = driver or settings.BLUETOOTH_DRIVER
-        self.scanner = scanner or settings.IBEACON_SCANNER
+        scan_results_length = 10
+        self._scan_results = Array(c_char_p, scan_results_length)
+        driver = driver or settings.BLUETOOTH_DRIVER
+        scanner = scanner or settings.IBEACON_SCANNER
+        self.start_scanning(driver, scanner, scan_results_length)
 
-    def init_device(self):
-        os.system('bash {}'.format(settings.BLUETOOTH_INIT_SCRIPT))
+    def start_scanning(self, driver, scanner, scan_results_length):
+        scanning = Process(
+            target=self.scan_continuously,
+            args=(driver, scanner, self._scan_results, scan_results_length)
+        )
+        scanning.start()
 
-    def scan(self):
+    def scan_continuously(driver, scanner, scan_results, scan_results_length):
         """Scan for nearby bluetooth devices"""
         try:
-            with utils.close_socket(self.driver.hci_open_dev(0)) as socket:
-                socket = self.driver.hci_open_dev(0)
-                self.scanner.hci_le_set_scan_parameters(socket)
-                self.scanner.hci_enable_le_scan(socket)
-                results = self.scanner.parse_events(socket, loop_count=1)
+            # Init bluetooth device
+            os.system(settings.BLUETOOTH_INIT_SCRIPT)
+            socket = driver.hci_open_dev(0)
+            scanner.hci_le_set_scan_parameters(socket)
+            scanner.hci_enable_le_scan(socket)
         except:
-            logger.exception("Failed to initialise Bluetooth")
+            logger.exception("Failed to scan with Bluetooth")
         else:
-            return results
+            while True:
+                time.sleep(settings.BLUETOOTH_SCAN_INTERVAL)
+                results = scanner.parse_events(
+                    socket, loop_count=scan_results_length
+                )
+                for i in range(scan_results_length):
+                    scan_results[i] = results[i]
+
+    @property
+    def scan_results(self):
+        return self._scan_results[:]
 
 
 class Bot(Driver):

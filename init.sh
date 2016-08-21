@@ -12,8 +12,5 @@ modprobe bcm2835-v4l2
 echo "Enabling pi2go"
 modprobe i2c-dev
 
-echo "Enabling Bluetooth"
-bash /usr/src/app/config/bluetooth.sh
-
 echo "Starting Prometheus"
 bash /usr/src/app/config/prometheus/prometheus.sh

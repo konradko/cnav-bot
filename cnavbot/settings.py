@@ -27,6 +27,8 @@ else:
 BLUETOOTH_INIT_SCRIPT = os.path.join(
     PROJECT_ROOT, '..', 'config', 'bluetooth.sh'
 )
+# In seconds
+BLUETOOTH_SCAN_INTERVAL = os.getenv('BLUETOOTH_SCAN_INTERVAL', 1)
 
 # 'wander' (roam freely) or 'follow' (follow line)
 BOT_MODE_WANDER = 'wander'
