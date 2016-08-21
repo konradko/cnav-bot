@@ -1,5 +1,4 @@
-from ctypes import c_char_p
-from multiprocessing import Process, Array
+from multiprocessing import Process, Queue
 import os
 import time
 
@@ -161,8 +160,7 @@ class LineSensor(Driver):
 class Bluetooth(object):
 
     def __init__(self, driver=None, scanner=None, *args, **kwargs):
-        self.scan_results_length = 10
-        self._scan_results = Array(c_char_p, self.scan_results_length)
+        self.results = Queue()
         self.driver = driver or settings.BLUETOOTH_DRIVER
         self.scanner = scanner or settings.IBEACON_SCANNER
         self.start_scanning()
@@ -170,15 +168,27 @@ class Bluetooth(object):
     def start_scanning(self):
         scanning = Process(
             target=self.scan_continuously,
-            args=(self._scan_results, )
+            args=(self.results, )
         )
         scanning.start()
 
-    def scan_continuously(self, scan_results):
-        """Scan for nearby bluetooth devices"""
-        try:
-            # Init bluetooth device
+    def init_device(self):
+        # Init bluetooth device
+        exit_code = os.system(settings.BLUETOOTH_INIT_SCRIPT)
+        if exit_code != 0:
+            # Very often it succeeds immediately on second try
             os.system(settings.BLUETOOTH_INIT_SCRIPT)
+
+    @staticmethod
+    def put_in_single_element_queue(queue, data):
+        while not queue.empty():
+            queue.get()
+        queue.put(data)
+
+    def scan_continuously(self, results):
+        """Scan for nearby bluetooth devices"""
+        self.init_device()
+        try:
             socket = self.driver.hci_open_dev(0)
             self.scanner.hci_le_set_scan_parameters(socket)
             self.scanner.hci_enable_le_scan(socket)
@@ -187,15 +197,12 @@ class Bluetooth(object):
         else:
             while True:
                 time.sleep(settings.BLUETOOTH_SCAN_INTERVAL)
-                results = self.scanner.parse_events(
-                    socket, loop_count=self.scan_results_length
-                )
-                for i in range(self.scan_results_length):
-                    scan_results[i] = results[i]
+                events = self.scanner.parse_events(socket, loop_count=5)
+                self.put_in_single_element_queue(queue=results, data=events)
 
     @property
     def scan_results(self):
-        return self._scan_results[:]
+        return self.results.get()
 
 
 class Bot(Driver):
