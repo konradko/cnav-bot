@@ -1,5 +1,6 @@
-from multiprocessing import Process, Queue
-import os
+from collections import deque
+from multiprocessing import Process
+import subprocess
 import time
 
 from cnavbot import settings, logger
@@ -159,8 +160,10 @@ class LineSensor(Driver):
 
 class Bluetooth(object):
 
+    DEVICE_SETUP_SUCCESS_MSG = "Device setup complete"
+
     def __init__(self, driver=None, scanner=None, *args, **kwargs):
-        self.results = Queue()
+        self.results = deque()
         self.driver = driver or settings.BLUETOOTH_DRIVER
         self.scanner = scanner or settings.IBEACON_SCANNER
         self.start_scanning()
@@ -172,18 +175,24 @@ class Bluetooth(object):
         )
         scanning.start()
 
-    def init_device(self):
-        # Init bluetooth device
-        exit_code = os.system(settings.BLUETOOTH_INIT_SCRIPT)
-        if exit_code != 0:
-            # Very often it succeeds immediately on second try
-            os.system(settings.BLUETOOTH_INIT_SCRIPT)
-
     @staticmethod
-    def put_in_single_element_queue(queue, data):
-        while not queue.empty():
-            queue.get()
-        queue.put(data)
+    def load_device_init_script():
+        return subprocess.Popen(
+            ["bash", settings.BLUETOOTH_INIT_SCRIPT],
+            stdout=subprocess.PIPE,
+            shell=True
+        ).communicate()
+
+    def device_initialised_sucessfully(self, output, error):
+        # Checking output as exit code cannot be trusted in this case
+        return (self.DEVICE_SETUP_SUCCESS_MSG in output) and not error
+
+    def init_device(self):
+        """Initialise bluetooth device"""
+        output, error = self.load_device_init_script()
+        if not self.device_initialised_sucessfully(output, error):
+            # Very often it succeeds immediately on second try
+            self.load_device_init_script()
 
     def scan_continuously(self, results):
         """Scan for nearby bluetooth devices"""
@@ -198,11 +207,12 @@ class Bluetooth(object):
             while True:
                 time.sleep(settings.BLUETOOTH_SCAN_INTERVAL)
                 events = self.scanner.parse_events(socket, loop_count=5)
-                self.put_in_single_element_queue(queue=results, data=events)
+                self.results.clear()
+                self.results.append(events)
 
     @property
     def scan_results(self):
-        return self.results.get()
+        return self.results.pop()
 
 
 class Bot(Driver):
