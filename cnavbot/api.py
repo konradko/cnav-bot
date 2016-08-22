@@ -341,9 +341,9 @@ class Bot(Driver):
         if self.left_line and self.right_line:
             self.motors.forward()
         elif self.left_line:
-            self.motors.right()
+            self.motors.left(steps=1)
         elif self.right_line:
-            self.motors.left()
+            self.motors.right(steps=1)
 
     def follow_line_continuously(self):
         while True:
