@@ -338,12 +338,24 @@ class Bot(Driver):
             self.wander()
 
     def follow_line(self):
+        last_left = False
+        last_right = False
         if self.left_line and self.right_line:
             self.motors.forward()
         elif self.left_line:
+            last_left = True
+            last_right = False
             self.motors.left(steps=1)
         elif self.right_line:
+            last_right = True
+            last_left = False
             self.motors.right(steps=1)
+        elif not self.left_line and not self.right_line:
+            self.reverse(steps=2)
+            if last_right:
+                self.motors.right(steps=2)
+            if last_left:
+                self.motors.left(steps=2)
 
     def follow_line_continuously(self):
         while True:

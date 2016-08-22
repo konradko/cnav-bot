@@ -5,7 +5,8 @@ from cnavbot import api, utils, settings, logger
 def run():
     logger.info("Starting...")
     with utils.cleanup(api.Bot()) as bot:
-        bot.wait_till_switch_pressed()
+        if settings.BOT_WAIT_FOR_BUTTON_PRESS:
+            bot.wait_till_switch_pressed()
         if settings.BOT_IN_WANDER_MODE:
             bot.wander_continuously()
         elif settings.BOT_IN_FOLLOW_MODE:

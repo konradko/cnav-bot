@@ -9,6 +9,9 @@ RUNNING_ON_PI = (
     HOSTNAME.startswith('raspberrypi') and MACHINE.startswith('arm')
 )
 
+
+# Drivers #####################################################################
+
 # Driver libs can only be installed on RPi
 if RUNNING_ON_PI:
     from pi2go import pi2go  # noqa
@@ -24,30 +27,51 @@ else:
     BLUETOOTH_DRIVER = None
     IBEACON_SCANNER = None
 
+
+# Bluetooth ###################################################################
+
 BLUETOOTH_INIT_SCRIPT = os.path.join(
     PROJECT_ROOT, '..', 'config', 'bluetooth.sh'
 )
 # In seconds
 BLUETOOTH_SCAN_INTERVAL = os.getenv('BLUETOOTH_SCAN_INTERVAL', 1)
 
+
+# Bot modes ###################################################################
+
 # 'wander' (roam freely) or 'follow' (follow line)
 BOT_MODE_WANDER = 'wander'
 BOT_MODE_FOLLOW = 'follow'
-BOT_IN_FOLLOW_AVOID_MODE = 'follow-avoid'
+BOT_IN_FOLLOW_AVOID = 'follow-avoid'
 BOT_MODE = os.getenv('BOT_MODE', BOT_MODE_WANDER)
 BOT_IN_WANDER_MODE = False
 BOT_IN_FOLLOW_MODE = False
+BOT_IN_FOLLOW_AVOID_MODE = False
 
 if BOT_MODE == BOT_MODE_WANDER:
     BOT_IN_WANDER_MODE = True
 elif BOT_MODE == BOT_MODE_FOLLOW:
     BOT_IN_FOLLOW_MODE = True
+elif BOT_MODE == BOT_IN_FOLLOW_AVOID:
+    BOT_IN_FOLLOW_AVOID_MODE = True
+
+BOT_WAIT_FOR_BUTTON_PRESS = os.getenv('BOT_WAIT_FOR_BUTTON_PRESS', 'true')
+if BOT_WAIT_FOR_BUTTON_PRESS == 'false':
+    BOT_WAIT_FOR_BUTTON_PRESS = False
+else:
+    BOT_WAIT_FOR_BUTTON_PRESS = True
+
+
+# Defaults ####################################################################
 
 # Must be between 0 and 100
 BOT_DEFAULT_SPEED = int(os.getenv('BOT_DEFAULT_SPEED', 30))
 BOT_DEFAULT_NAME = os.getenv('BOT_DEFAULT_NAME', HOSTNAME)
 BOT_DEFAULT_MAX_DISTANCE = int(os.getenv('BOT_DEFAULT_MAX_DISTANCE', 10))
-BOT_LOG_PATH = os.environ.get('BOT_LOG_PATH', '/tmp/cnavbot.log')
 
+
+# Logging #####################################################################
+
+BOT_LOG_PATH = os.environ.get('BOT_LOG_PATH', '/tmp/cnavbot.log')
 SENTRY_DSN = os.environ.get('SENTRY_DSN', '')
 SENTRY_CLIENT = Client(SENTRY_DSN) if SENTRY_DSN else None
