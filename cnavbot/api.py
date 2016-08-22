@@ -146,15 +146,15 @@ class ObstacleSensor(Driver):
 class LineSensor(Driver):
 
     def left(self):
-        """Returns the state of the left line sensor"""
-        left = self.driver.irLeftLine()
-        logger.info('Left line: {}'.format(left))
+        """Returns True if left line sensor detected dark line"""
+        left = not self.driver.irLeftLine()
+        logger.info('Left line detected: {}'.format(left))
         return left
 
     def right(self):
-        """Returns the state of the right line sensor"""
-        right = self.driver.irRightLine()
-        logger.info('Right line: {}'.format(right))
+        """Returns True if right line sensor detected dark line"""
+        right = not self.driver.irRightLine()
+        logger.info('Right line detected: {}'.format(right))
         return right
 
 
@@ -191,7 +191,7 @@ class Bluetooth(object):
         """Initialise bluetooth device"""
         output, error = self.load_device_init_script()
         if not self.device_initialised_sucessfully(output, error):
-            # Very often it succeeds immediately on second try
+            # Very often it succeeds only on second try
             self.load_device_init_script()
 
     def scan_continuously(self, results):
@@ -340,22 +340,22 @@ class Bot(Driver):
     def follow_line(self):
         last_left = False
         last_right = False
-        if self.left_line and self.right_line:
+        if (not self.left_line) and (not self.right_line):
             self.motors.forward()
         elif self.left_line:
             last_left = True
             last_right = False
-            self.motors.left(steps=1)
+            self.motors.right(steps=1)
         elif self.right_line:
             last_right = True
             last_left = False
-            self.motors.right(steps=1)
-        elif not self.left_line and not self.right_line:
+            self.motors.left(steps=1)
+        elif self.left_line and self.right_line:
             self.reverse(steps=2)
             if last_right:
-                self.motors.right(steps=2)
-            if last_left:
                 self.motors.left(steps=2)
+            if last_left:
+                self.motors.right(steps=2)
 
     def follow_line_continuously(self):
         while True:
