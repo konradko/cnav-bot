@@ -8,8 +8,10 @@ def run():
         bot.wait_till_switch_pressed()
         if settings.BOT_IN_WANDER_MODE:
             bot.wander_continuously()
-        if settings.BOT_IN_FOLLOW_MODE:
+        elif settings.BOT_IN_FOLLOW_MODE:
             bot.follow_line_continuously()
+        elif settings.BOT_IN_FOLLOW_AVOID_MODE:
+            bot.follow_line_and_avoid_obstacles_continuously()
     logger.info("Done")
 
 

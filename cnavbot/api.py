@@ -348,3 +348,11 @@ class Bot(Driver):
     def follow_line_continuously(self):
         while True:
             self.follow_line()
+
+    def follow_line_and_avoid_obstacles(self):
+        self.avoid_obstacles()
+        self.follow_line()
+
+    def follow_line_and_avoid_obstacles_continuously(self):
+        while True:
+            self.follow_line_and_avoid_obstacles()

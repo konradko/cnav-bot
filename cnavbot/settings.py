@@ -33,6 +33,7 @@ BLUETOOTH_SCAN_INTERVAL = os.getenv('BLUETOOTH_SCAN_INTERVAL', 1)
 # 'wander' (roam freely) or 'follow' (follow line)
 BOT_MODE_WANDER = 'wander'
 BOT_MODE_FOLLOW = 'follow'
+BOT_IN_FOLLOW_AVOID_MODE = 'follow-avoid'
 BOT_MODE = os.getenv('BOT_MODE', BOT_MODE_WANDER)
 BOT_IN_WANDER_MODE = False
 BOT_IN_FOLLOW_MODE = False
