@@ -1,9 +1,11 @@
-# import the necessary packages
-from picamera.array import PiRGBArray
-from picamera import PiCamera
 import time
+import datetime
+
 import cv2
 import numpy as np
+
+from picamera.array import PiRGBArray
+from picamera import PiCamera
 
 # initialize the camera and grab a reference to the raw camera capture
 camera = PiCamera()
@@ -18,35 +20,33 @@ time.sleep(0.1)
 
 # capture frames from the camera
 for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
-    # grab the raw NumPy array representing the image, then initialize the timestamp
-    # and occupied/unoccupied text
-    image = frame.array
 
-    blur = cv2.blur(image, (3, 3))
+    blur = cv2.blur(frame, (3, 3))
 
-    lower = np.array([76, 31, 4], dtype="uint8")
-    upper = np.array([210, 90, 70], dtype="uint8")
+    # Bright green
+    lower = np.array([10, 150, 0], dtype="uint8")
+    upper = np.array([120, 255, 0], dtype="uint8")
 
     thresh = cv2.inRange(blur, lower, upper)
     thresh2 = thresh.copy()
 
-    # find contours in the threshold image
-    image, contours, hierarchy = cv2.findContours(
-        thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv2.findContours(
+        thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE
+    )
 
-    # finding contour with maximum area and store it as best_cnt
-    max_area = 100
-    best_cnt = 1
-    for cnt in contours:
-        area = cv2.contourArea(cnt)
+    max_area = 1000
+    largest_area_contour = None
+    for contour in contours:
+        area = cv2.contourArea(contour)
         if area > max_area:
             max_area = area
-            best_cnt = cnt
+            largest_area_contour = contour
 
-    moments = cv2.moments(best_cnt)
+    if not largest_area_contour:
+        continue
+
+    moments = cv2.moments(largest_area_contour)
     centre = ((int(moments['m10'] / moments['m00']),
                int(moments['m01'] / moments['m00'])))
-    print centre
+    print "{} - {}".format(datetime.datetime.now(), centre)
 
-    # clear the stream in preparation for the next frame
-    rawCapture.truncate(0)
