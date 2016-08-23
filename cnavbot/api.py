@@ -180,7 +180,6 @@ class Bluetooth(object):
         return subprocess.Popen(
             ["bash", settings.BLUETOOTH_INIT_SCRIPT],
             stdout=subprocess.PIPE,
-            shell=True
         ).communicate()
 
     def device_initialised_sucessfully(self, output, error):
