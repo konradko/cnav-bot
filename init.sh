@@ -13,7 +13,7 @@ echo "Enabling pi2go"
 modprobe i2c-dev
 
 echo "Enabling bluetooth"
-hciconfig hci0 up
+bash /usr/src/app/config/bluetooth.sh
 
 echo "Starting Prometheus"
 bash /usr/src/app/config/prometheus.sh

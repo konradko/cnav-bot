@@ -11,8 +11,17 @@ COPY config/papertrail/papertrail.service /etc/systemd/system/
 # Install openSSH, nmap (contains ncat required by papertrail), bluetooth and opencv
 # remove the apt list to reduce the size of the image
 RUN apt-get update && apt-get install -yq --no-install-recommends \
-    openssh-server nmap bluez bluez-firmware libbluetooth-dev \
-    libopencv-dev python-opencv build-essential libc6-dev && \
+    openssh-server \
+    nmap \
+    bluetooth \
+    bluez \
+    bluez-firmware \
+    libbluetooth-dev \
+    libudev-dev \
+    libopencv-dev \
+    python-opencv \
+    build-essential \
+    libc6-dev && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Prometheus
