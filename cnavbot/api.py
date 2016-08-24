@@ -1,6 +1,5 @@
 from collections import deque
 from multiprocessing import Process
-import subprocess
 import time
 
 from cnavbot import settings, logger
@@ -175,27 +174,8 @@ class Bluetooth(object):
         )
         scanning.start()
 
-    @staticmethod
-    def load_device_init_script():
-        return subprocess.Popen(
-            ["bash", settings.BLUETOOTH_INIT_SCRIPT],
-            stdout=subprocess.PIPE,
-        ).communicate()
-
-    def device_initialised_sucessfully(self, output, error):
-        # Checking output as exit code cannot be trusted in this case
-        return (self.DEVICE_SETUP_SUCCESS_MSG in output) and not error
-
-    def init_device(self):
-        """Initialise bluetooth device"""
-        output, error = self.load_device_init_script()
-        if not self.device_initialised_sucessfully(output, error):
-            # Very often it succeeds only on second try
-            self.load_device_init_script()
-
     def scan_continuously(self, results):
         """Scan for nearby bluetooth devices"""
-        self.init_device()
         try:
             socket = self.driver.hci_open_dev(0)
             self.scanner.hci_le_set_scan_parameters(socket)
@@ -211,7 +191,12 @@ class Bluetooth(object):
 
     @property
     def scan_results(self):
-        return self.results.pop()
+        try:
+            results = self.results.pop()
+        except IndexError:
+            results = None
+
+        return results
 
 
 class Bot(Driver):
