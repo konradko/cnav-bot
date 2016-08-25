@@ -2,8 +2,8 @@
 
 # OpenSSH
 mkdir -p ~/.ssh
-# CLIENT_PUBKEY is set via resin.io env vars
-echo $CLIENT_PUBKEY | tee -a ~/.ssh/authorized_keys
+# CLIENT_PUBKEYS are set via resin.io env vars (separated with '\n')
+printf "$CLIENT_PUBKEYS" | tee -a ~/.ssh/authorized_keys
 
 if [ -d "/data/ssh" ]; then
     # Restore keys from first openssh-server install
@@ -14,4 +14,8 @@ else
     cp /etc/ssh/ssh_host_*_key* /data/ssh/
 
 fi
+
 service ssh start
+
+# Load resin.io env vars when running bash
+echo ". <(xargs -0 bash -c 'printf \"export %q\n\" \"\$@\"' -- < /proc/1/environ)" >> /root/.bash_profile
