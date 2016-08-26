@@ -1,6 +1,6 @@
 files:
   - BOT_LOG_PATH
 destination:
-  host:
-  port:
+  host: PAPERTRAIL_HOST
+  port: PAPERTRAIL_PORT
   protocol: tls

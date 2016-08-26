@@ -4,7 +4,7 @@ After=systemd-journald.service
 Requires=systemd-journald.service
 
 [Service]
-ExecStart=/bin/sh -c "journalctl -f | ncat --ssl host port"
+ExecStart=/bin/sh -c "journalctl -f | ncat --ssl PAPERTRAIL_HOST PAPERTRAIL_PORT"
 TimeoutStartSec=0
 Restart=on-failure
 RestartSec=5s
