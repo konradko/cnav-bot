@@ -7,7 +7,7 @@
 -e git+https://github.com/resin-io/resin-sdk-python.git@master#egg=resin
 colorama==0.3.7           # via radon
 configparser==3.5.0       # via flake8
-contextlib2==0.5.4        # via raven
+contextlib2==0.5.4
 coverage==4.2             # via pytest-cov
 enum34==1.1.6             # via flake8
 flake8-polyfill==1.0.1
@@ -28,8 +28,9 @@ pyotp==2.1.1
 pytest-cov==2.3.1
 pytest==2.9.2
 PyYAML==3.11              # via xenon
+pyzmq==15.4.0
 radon==1.4.2
-raven==5.24.3
+raven==5.25.0
 requests==2.10.0          # via pubnub, xenon
 six==1.10.0               # via mock
 xenon==0.5.0

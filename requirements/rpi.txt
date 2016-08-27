@@ -7,10 +7,11 @@
 -e git+https://git@github.com/konradko/iBeacon-scanner.git@master#egg=ibeaconscanner
 -e git+https://git@github.com/konradko/pi2go.git@master#egg=pi2go
 cffi==1.7.0               # via smbus-cffi
-contextlib2==0.5.4        # via raven
+contextlib2==0.5.4
 picamera==1.12
 PyBluez==0.22
 pycparser==2.14           # via cffi
-raven==5.24.3
+pyzmq==15.4.0
+raven==5.25.0
 RPi.GPIO==0.6.2
 smbus-cffi==0.5.1

@@ -19,10 +19,12 @@ install_test_requirements:
 	pip-sync requirements/test.txt
 
 update_requirements:
+	pip-compile --output-file requirements/common.txt requirements/common.in
 	pip-compile --output-file requirements/rpi.txt requirements/rpi.in
 	pip-compile --output-file requirements/test.txt requirements/test.in
 
 upgrade_requirements:
+	pip-compile --upgrade --output-file requirements/common.txt requirements/common.in
 	pip-compile --upgrade --output-file requirements/rpi.txt requirements/rpi.in
 	pip-compile --upgrade --output-file requirements/test.txt requirements/test.in
 

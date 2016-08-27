@@ -1,6 +1,7 @@
+-r common.txt
+
 pytest
 pytest-cov
-raven
 xenon
 mock
 flake8
