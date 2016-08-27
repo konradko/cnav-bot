@@ -1,6 +1,12 @@
+import base64
 import json
+import uuid
+import os
+import time
 
 import zmq
+
+from cnavbot import settings
 
 
 class InvalidMessageError(Exception):
@@ -10,35 +16,45 @@ class InvalidMessageError(Exception):
 class Message(object):
     """Summary"""
 
-    def __init__(self, topic, data):
+    def __init__(self, topic, data, timestamp=None):
         """
         Args:
             topic (str): topic of the message
-            data (str): json-serializable message data
+            data (str): message data
         """
+        self.id = str(uuid.uuid4())
         self.topic = topic
         self.data = data
+        self.timestamp = timestamp or time.time()
         self.validate()
 
     def validate(self):
         try:
-            self.serialized
+            self.serialize()
         except Exception as e:
             raise InvalidMessageError(u"Invalid message: {}".format(e))
 
-    @property
-    def serialized(self):
+    def serialize_data(self, data):
+        return str(data)
+
+    def serialize(self):
         """Returns serialized message
 
         Returns:
             str: serialized message
         """
-        return "{topic} {data}".format(
-            topic=self.topic, data=json.dumps(self.data)
+        return "{topic} {timestamp} {data}".format(
+            topic=self.topic,
+            timestamp=self.timestamp,
+            data=self.serialize_data(self.data)
         )
 
-    @staticmethod
-    def deserialize(message):
+    @classmethod
+    def deserialize_data(cls, data):
+        return str(data)
+
+    @classmethod
+    def deserialize(cls, message):
         """Deserializes a message
 
         Args:
@@ -48,14 +64,71 @@ class Message(object):
             Message: deserialized message
         """
         try:
-            topic, data = message.split()
+            topic, timestamp, data = message.split()
+            data = cls.deserialize_data(data)
         except Exception as e:
             raise InvalidMessageError(u"Invalid message: {}".format(e))
         else:
-            return Message(topic=topic, data=data)
+            return cls(topic=topic, data=data)
 
     def __unicode__(self):
-        return self.serialise()
+        return self.serialize()
+
+
+class JsonMessage(Message):
+
+    def serialize_data(self, data):
+        return json.dumps(data)
+
+    @classmethod
+    def deserialize_data(cls, data):
+        return json.loads(data)
+
+
+class Base64Message(Message):
+
+    def serialize_data(self, data):
+        return base64.b64encode(data)
+
+    @classmethod
+    def deserialize_data(cls, data):
+        return base64.b64decode(data)
+
+
+class FileMessage(Base64Message):
+
+    def __init__(self, file_name, *args, **kwargs):
+        self.file_name = file_name or str(uuid.uuid4())
+        kwargs['data'] = self.save_file(
+            topic=kwargs['topic'],
+            file_data=bytearray(base64.b64decode(kwargs['data']))
+        )
+        super(FileMessage, self).__init__(*args, **kwargs)
+
+    def serialize_data(self, data):
+        with open(data, 'rb') as source:
+            return base64.b64encode(bytearray(source.read()))
+
+    @staticmethod
+    def get_topic_storage_dir(topic):
+        topic_storage_dir = os.path.join(
+            settings.FILE_MESSAGE_STORAGE_PATH, topic
+        )
+
+        if not os.path.exists(topic_storage_dir):
+            os.makedirs(topic_storage_dir)
+
+        return topic_storage_dir
+
+    def save_file(self, topic, file_data):
+        file_path = os.path.join(
+            self.get_topic_storage_dir(topic), self.file_name
+        )
+
+        with open(file_path) as destination:
+            destination.write(file_data)
+
+        return file_path
 
 
 class Publisher(object):
@@ -78,13 +151,15 @@ class Publisher(object):
         Args:
             message (Message): Message to send
         """
-        self.socket.send(message.serialized)
+        self.socket.send(message.serialize())
 
 
 class Subscriber(object):
     """ZMQ subscriber"""
 
-    def __init__(self, publishers, topics=None):
+    message_class = Message
+
+    def __init__(self, publishers, topics, message_class=None):
         """Init subscriber
 
         Args:
@@ -99,6 +174,9 @@ class Subscriber(object):
         for topic in topics:
             self.subscribe(topic)
 
+        if message_class:
+            self.message_class = message_class
+
     def subscribe(self, topic):
         """Subscribe to a topic
 
@@ -107,19 +185,32 @@ class Subscriber(object):
         """
         self.socket.setsockopt(zmq.SUBSCRIBE, topic)
 
-    def get_message(self):
+    def read(self):
         """Returns a single message from the publishers
 
         Returns:
             Message: deserialized message
         """
         message = self.socket.recv()
-        return Message.deserialize(message=message)
+        return self.message_class.deserialize(message=message)
 
 
-class LastMessageSubscriber(object):
+class LastMessageSubscriber(Subscriber):
     """ZMQ subscriber reading only the latest message"""
 
     def __init__(self, *args, **kwargs):
         super(LastMessageSubscriber, self).__init__(*args, **kwargs)
         self.socket.setsockopt(zmq.CONFLATE, 1)
+
+
+class LastJsonMessageSubscriber(LastMessageSubscriber):
+    message_class = JsonMessage
+
+
+class LastBase64MessageSubscriber(LastMessageSubscriber):
+    message_class = Base64Message
+
+
+class LastFileMessageSubscriber(LastMessageSubscriber):
+    message_class = FileMessage
+
