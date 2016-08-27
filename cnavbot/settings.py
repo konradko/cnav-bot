@@ -22,10 +22,14 @@ if RUNNING_ON_PI:
 
     from ibeaconscanner import blescan  # noqa
     IBEACON_SCANNER = blescan
+
+    import picamera
+    CAMERA = picamera
 else:
     BOT_DRIVER = None
     BLUETOOTH_DRIVER = None
     IBEACON_SCANNER = None
+    CAMERA = None
 
 
 # Bluetooth ###################################################################
@@ -36,6 +40,11 @@ BLUETOOTH_INIT_SCRIPT = os.path.join(
 # In seconds
 BLUETOOTH_SCAN_INTERVAL = os.getenv('BLUETOOTH_SCAN_INTERVAL', 1)
 
+# Camera ###################################################################
+CAMERA_INTERVAL = int(os.getenv('CAMERA_INTERVAL', 1))
+CAMERA_RESOLUTION_X = int(os.getenv('CAMERA_RESOLUTION_X', 640))
+CAMERA_RESOLUTION_Y = int(os.getenv('CAMERA_RESOLUTION_Y', 480))
+CAMERA_RESOLUTION = (CAMERA_RESOLUTION_X, CAMERA_RESOLUTION_Y)
 
 # Bot modes ###################################################################
 
@@ -75,3 +84,29 @@ BOT_DEFAULT_MAX_DISTANCE = int(os.getenv('BOT_DEFAULT_MAX_DISTANCE', 10))
 BOT_LOG_PATH = os.environ.get('BOT_LOG_PATH', '/tmp/cnavbot.log')
 SENTRY_DSN = os.environ.get('SENTRY_DSN', '')
 SENTRY_CLIENT = Client(SENTRY_DSN) if SENTRY_DSN else None
+
+
+# Messaging ###################################################################
+
+LOCAL_PUBLISHER_ADDRESS = 'tcp://localhost:{port}'
+
+BLUETOOTH_PUBLISHER_TOPIC = '{}.bluetooth'.format(
+    BOT_DEFAULT_NAME.replace(' ', '')
+)
+BLUETOOTH_PUBLISHER_PORT = int(os.getenv('BLUETOOTH_PUBLISHER_PORT', 48630))
+LOCAL_BLUETOOTH_PUBLISHER_ADDRESS = LOCAL_PUBLISHER_ADDRESS.format(
+    port=BLUETOOTH_PUBLISHER_PORT
+)
+
+FILE_MESSAGE_STORAGE_PATH = os.getenv('FILE_MESSAGE_STORAGE_PATH', '/tmp')
+if not os.path.exists(FILE_MESSAGE_STORAGE_PATH):
+    os.makedirs(FILE_MESSAGE_STORAGE_PATH)
+
+CAMERA_PUBLISHER_TOPIC = '{}.camera'.format(
+    BOT_DEFAULT_NAME.replace(' ', '')
+)
+CAMERA_PUBLISHER_PORT = int(os.getenv('CAMERA_PUBLISHER_PORT', 48631))
+LOCAL_CAMERA_PUBLISHER_ADDRESS = LOCAL_PUBLISHER_ADDRESS.format(
+    port=CAMERA_PUBLISHER_PORT
+)
+
