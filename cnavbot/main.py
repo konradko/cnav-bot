@@ -1,9 +1,11 @@
-from cnavbot import api, utils, settings, logger
+from cnavbot import api, camera, bluetooth, utils, settings, logger
 
 
 @utils.sentry
 def run():
     logger.info("Starting...")
+    bluetooth.Service().run()
+    camera.Service().run()
     with utils.cleanup(api.Bot()) as bot:
         if settings.BOT_WAIT_FOR_BUTTON_PRESS:
             bot.wait_till_switch_pressed()

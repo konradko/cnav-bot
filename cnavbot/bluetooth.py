@@ -16,6 +16,7 @@ class Service(object):
         self.scanning = Process(target=self.scan_and_publish_continuously)
 
     def run(self):
+        logger.info("Starting bluetooth service...")
         self.scanning.start()
 
     def scan_and_publish_continuously(self):

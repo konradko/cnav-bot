@@ -18,6 +18,7 @@ class Service(object):
         self.capturing = Process(target=self.take_picture_continously)
 
     def run(self):
+        logger.info("Starting camera service...")
         self.capturing.start()
 
     @staticmethod
