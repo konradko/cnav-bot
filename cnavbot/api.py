@@ -1,8 +1,6 @@
-from collections import deque
-from multiprocessing import Process
 import time
 
-from cnavbot import settings, logger
+from cnavbot import settings, logger, bluetooth, camera
 
 
 class Driver(object):
@@ -157,48 +155,6 @@ class LineSensor(Driver):
         return right
 
 
-class Bluetooth(object):
-
-    DEVICE_SETUP_SUCCESS_MSG = "Device setup complete"
-
-    def __init__(self, driver=None, scanner=None, *args, **kwargs):
-        self.results = deque()
-        self.driver = driver or settings.BLUETOOTH_DRIVER
-        self.scanner = scanner or settings.IBEACON_SCANNER
-        self.start_scanning()
-
-    def start_scanning(self):
-        scanning = Process(
-            target=self.scan_continuously,
-            args=(self.results, )
-        )
-        scanning.start()
-
-    def scan_continuously(self, results):
-        """Scan for nearby bluetooth devices"""
-        try:
-            socket = self.driver.hci_open_dev(0)
-            self.scanner.hci_le_set_scan_parameters(socket)
-            self.scanner.hci_enable_le_scan(socket)
-        except:
-            logger.exception("Failed to scan with Bluetooth")
-        else:
-            while True:
-                time.sleep(settings.BLUETOOTH_SCAN_INTERVAL)
-                events = self.scanner.parse_events(socket, loop_count=5)
-                self.results.clear()
-                self.results.append(events)
-
-    @property
-    def scan_results(self):
-        try:
-            results = self.results.pop()
-        except IndexError:
-            results = None
-
-        return results
-
-
 class Bot(Driver):
     # Number of steps required for 360 spin
     full_spin_steps = 44
@@ -217,11 +173,20 @@ class Bot(Driver):
         self.obstacle_sensor = ObstacleSensor(
             max_distance=max_distance, driver=self.driver
         )
-        self.bluetooth = Bluetooth()
+        self.bluetooth = bluetooth.get_reader()
+        self.camera = camera.get_reader()
 
     def cleanup(self):
         logger.info('Cleaning up')
         self.driver.cleanup()
+
+    @property
+    def ble_scan_results(self):
+        return self.bluetooth.read().data
+
+    @property
+    def picture(self):
+        return self.camera.read().data
 
     @property
     def left_line(self):

@@ -1,8 +1,5 @@
 from contextlib import contextmanager
 import logging
-import time
-
-import picamera
 
 from cnavbot import settings
 
@@ -31,11 +28,3 @@ def sentry(func):
             else:
                 raise
     return wrapped
-
-
-def take_picture_continously(interval=15, save_to='/data/bot.jpg'):
-    with picamera.PiCamera() as camera:
-        camera.resolution = (640, 480)
-        while True:
-            time.sleep(interval)
-            camera.capture(save_to)

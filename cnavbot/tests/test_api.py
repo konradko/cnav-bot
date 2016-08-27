@@ -169,7 +169,7 @@ class TestBot(Test):
     def setUp(self):
         with mock.patch('cnavbot.settings.BLUETOOTH_DRIVER'):
             with mock.patch('cnavbot.settings.IBEACON_SCANNER'):
-                with mock.patch('cnavbot.api.Bluetooth'):
+                with mock.patch('cnavbot.settings.CAMERA'):
                     self.bot = api.Bot(speed=20, driver=mock.Mock())
                     self.bot.motors.keep_running = mock.Mock()
 
