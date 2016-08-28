@@ -13,7 +13,7 @@ class InvalidMessageError(Exception):
 
 
 class Message(object):
-    serializer = None
+    serializer = serializers.Unicode
 
     def __init__(self, *args, **kwargs):
         """
@@ -45,7 +45,7 @@ class Message(object):
             topic=self.topic,
             id=self.uuid,
             timestamp=self.timestamp,
-            data_type=self.data_type,
+            data_type=self.serializer.data_type,
             data=self.serializer.serialize(self.data)
         )
 
@@ -87,12 +87,7 @@ class Message(object):
         return self.serialize()
 
 
-class Unicode(Message):
-    serializer = serializers.Unicode
-
-
-class Base64(Message):
-    serializer = serializers.Base64
+class FileMixin(object):
     file_path = None
 
     @staticmethod
@@ -112,42 +107,43 @@ class Base64(Message):
             self.uuid,
         )
 
-    def get_file_path(self, file_name=None):
-        return os.path.join(
+    def set_file_path(self, file_name=None):
+        self.file_path = os.path.join(
             self.get_topic_storage_dir(self.topic),
             file_name or self.get_file_name()
         )
 
+
+class Base64(FileMixin, Message):
+    serializer = serializers.Base64
+
     def save(self, file_name=None):
-        file_path = self.get_file_path(file_name)
+        self.set_file_path(file_name)
 
         logger.info("Saving message '{}' data to '{}'".format(
-            self.uuid, file_path
+            self.uuid, self.file_path
         ))
 
-        with open(file_path) as destination:
+        with open(self.file_path) as destination:
             destination.write(bytearray(self.data))
 
         logger.info("Message '{}' data saved".format(self.uuid))
-        self.file_path = file_path
-
-        return file_path
 
 
 class JSON(Message):
     serializer = serializers.JSON
 
+    def set_file_path(self, *args, **kwargs):
+        super(JSON, self).set_file_path(*args, **kwargs)
+        self.data = self.file_path
 
-class FilePath(Message):
+
+class FilePath(FileMixin, JSON):
     serializer = serializers.FilePath
-
-    @property
-    def file_path(self):
-        return self.data['file_path']
 
 
 MESSAGE_FOR_DATA_TYPE = {
-    Unicode.serializer.data_type: Unicode,
+    Message.serializer.data_type: Message,
     Base64.serializer.data_type: Base64,
     JSON.serializer.data_type: JSON,
     FilePath.serializer.data_type: FilePath,

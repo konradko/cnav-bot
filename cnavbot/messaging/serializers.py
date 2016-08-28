@@ -5,7 +5,8 @@ import json
 class DataSerializer(object):
     data_type = None
 
-    def serialize(self, data):
+    @classmethod
+    def serialize(cls, data):
         raise NotImplementedError()
 
     @classmethod
@@ -14,20 +15,24 @@ class DataSerializer(object):
 
 
 class Unicode(DataSerializer):
-    data_type = 'text'
+    data_type = 'unicode'
 
-    def serialize(self, data):
-        return unicode(data)
+    @classmethod
+    def serialize(cls, data):
+        if isinstance(data, str):
+            return data
+        return data.encode('utf-8')
 
     @classmethod
     def deserialize(cls, data):
-        return unicode(data)
+        return data.decode('utf-8')
 
 
 class JSON(DataSerializer):
     data_type = 'json'
 
-    def serialize(self, data):
+    @classmethod
+    def serialize(cls, data):
         return json.dumps(data)
 
     @classmethod
@@ -42,7 +47,8 @@ class FilePath(JSON):
 class Base64(DataSerializer):
     data_type = 'base64'
 
-    def serialize(self, data):
+    @classmethod
+    def serialize(cls, data):
         return base64.b64encode(data)
 
     @classmethod

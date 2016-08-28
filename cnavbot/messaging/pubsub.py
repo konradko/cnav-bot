@@ -31,7 +31,7 @@ class Publisher(Socket):
         Args:
             message (Message): Message to send
         """
-        logger.info("Sending message '{}'' to topic {}".format(
+        logger.info("Sending message '{}'' to topic '{}'".format(
             message.uuid, message.topic
         ))
         self.socket.send(message.serialize())
@@ -57,7 +57,7 @@ class Subscriber(Socket):
             self.subscribe(topic)
 
     def connect(self, publisher):
-        logger.info("Connecting to publisher {}".format(publisher))
+        logger.info("Connecting to publisher '{}'".format(publisher))
         self.socket.connect(publisher)
 
     def subscribe(self, topic):
@@ -66,16 +66,16 @@ class Subscriber(Socket):
         Args:
             topic (str): Topic to subscribe to
         """
-        logger.info("Subscribing to topic {}".format(topic))
+        logger.info("Subscribing to topic '{}'".format(topic))
         self.socket.setsockopt(zmq.SUBSCRIBE, topic)
 
-    def read(self):
+    def receive(self):
         """Returns a single message from the publishers
 
         Returns:
             Message: deserialized message
         """
-        logger.info("Reading message")
+        logger.info("Getting a message...")
         message = self.socket.recv()
         return messages.parse(raw_message=message)
 

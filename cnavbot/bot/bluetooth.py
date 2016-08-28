@@ -1,56 +1,63 @@
 import time
-from multiprocessing import Process
 
 from cnavbot import settings
-from cnavbot.utils import logger
-from cnavbot.messaging import pubsub, messages
+from cnavbot.utils import logger, sentry
+from cnavbot.messaging import pubsub, messages, service
 
 
-class Bluetooth(object):
+class Service(service.Base):
+    name = 'bluetooth'
 
     def __init__(self, *args, **kwargs):
         self.driver = kwargs.get('driver', settings.BLUETOOTH_DRIVER)
         self.scanner = kwargs.get('scanner', settings.IBEACON_SCANNER)
-        self.publisher = kwargs.get(
-            'publisher',
-            pubsub.LastMessagePublisher(
-                port=settings.BLUETOOTH_PUBLISHER_PORT
-            )
+
+        super(Service, self).__init__(self, *args, **kwargs)
+
+    @staticmethod
+    def get_subscriber():
+        return pubsub.LastMessageSubscriber(
+            publishers=(settings.LOCAL_BLUETOOTH_PUBLISHER_ADDRESS, ),
+            topics=(settings.BLUETOOTH_PUBLISHER_TOPIC, )
         )
 
-        self.scanning = Process(target=self.scan_and_publish_continuously)
-
     def run(self):
-        logger.info("Starting bluetooth service...")
-        self.scanning.start()
-
-    def scan_and_publish_continuously(self):
-        """Scan for nearby bluetooth devices"""
+        publisher = pubsub.LastMessagePublisher(
+            port=settings.BLUETOOTH_PUBLISHER_PORT
+        )
         try:
             logger.info("Connecting to bluetooth device...")
             socket = self.driver.hci_open_dev(0)
-            self.scanner.hci_le_set_scan_parameters(socket)
-            self.scanner.hci_enable_le_scan(socket)
-        except:
-            logger.exception("Failed to scan with Bluetooth")
+            scanner = self.scanner.hci_le_set_scan_parameters(socket)
+            scanner.hci_enable_le_scan(socket)
+        except Exception as e:
+            logger.exception(
+                u"Failed to connect to bluetooth device: {}".format(e)
+            )
         else:
             while True:
                 time.sleep(settings.BLUETOOTH_SCAN_INTERVAL)
-                logger.info("Scanning with bluetooth...")
-                events = self.scanner.parse_events(socket, loop_count=5)
+                self.publish_scan_results(publisher, socket, scanner)
 
-                self.publisher.send(messages.JsonMessage(
-                    topic=settings.BLUETOOTH_PUBLISHER_TOPIC,
-                    data=events,
-                ))
+    @staticmethod
+    def scan(socket, scanner):
+        logger.info("Scanning with bluetooth...")
+        return scanner.parse_events(socket, loop_count=5)
+
+    @classmethod
+    def publish_scan_results(cls, publisher, socket, scanner):
+        scan_results = cls.scan(socket, scanner)
+
+        publisher.send(messages.JsonMessage(
+            topic=settings.BLUETOOTH_PUBLISHER_TOPIC,
+            data=scan_results,
+        ))
 
 
-def get_reader():
-    return pubsub.LastMessageSubscriber(
-        publishers=(settings.LOCAL_BLUETOOTH_PUBLISHER_ADDRESS, ),
-        topics=(settings.BLUETOOTH_PUBLISHER_TOPIC, )
-    )
+@sentry
+def start():
+    return Service()
 
 
 if __name__ == '__main__':
-    Bluetooth().run()
+    start()

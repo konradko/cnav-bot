@@ -1,194 +1,43 @@
 import time
 
 from cnavbot import settings
-from cnavbot.utils import logger
-from cnavbot.bot import bluetooth, camera
+from cnavbot.bot import bluetooth, camera, pi2go
+from cnavbot.utils import logger, sentry, cleanup
+from cnavbot.messaging import pubsub, service
 
 
-class Driver(object):
-
-    def __init__(self, driver=None, *args, **kwargs):
-        self.driver = driver or settings.BOT_DRIVER
-
-
-class Motors(Driver):
-
-    def __init__(self, speed=None, *args, **kwargs):
-        super(Motors, self).__init__(*args, **kwargs)
-        self.speed = speed or settings.BOT_DEFAULT_SPEED
-        self.validate_speed(self.speed)
-        logger.info('Speed set to {}'.format(self.speed))
-
-    @staticmethod
-    def validate_speed(speed):
-        if not (1 <= speed <= 100):
-            raise Exception(
-                "Invalid speed value '{}', must be between 1 an 100".format(
-                    speed
-                )
-            )
-
-    def forward(self, steps=None):
-        """Sets both motors to go forward"""
-        logger.info('Going forward')
-        self.driver.forward(self.speed)
-
-        if steps:
-            self.keep_running(steps)
-
-    def reverse(self, steps=None):
-        """Sets both motors to reverse"""
-        logger.info('Reversing')
-        self.driver.reverse(self.speed)
-
-        if steps:
-            self.keep_running(steps)
-
-    def left(self, steps=None):
-        """Sets motors to turn opposite directions for left spin"""
-        logger.info('Spinning left')
-        self.driver.spinLeft(self.speed)
-
-        if steps:
-            self.keep_running(steps)
-
-    def right(self, steps=None):
-        """Sets motors to turn opposite directions for right spin"""
-        logger.info('Spinning right')
-        self.driver.spinRight(self.speed)
-
-        if steps:
-            self.keep_running(steps)
-
-    def keep_running(self, steps):
-        logger.info('Keeping running for {} steps'.format(steps))
-        time.sleep(0.1 * steps)
-        self.stop()
-
-    def stop(self):
-        logger.info('Stopping')
-        self.driver.stop()
-
-
-class Lights(Driver):
-    led_numbers = (1, 2, 3, 4)
-
-    def validate_led_number(self, led_number):
-        if not(led_number in self.led_numbers):
-            raise Exception(
-                "Invalid led number '{}', must be in {}".format(
-                    led_number,
-                    self.led_numbers
-                )
-            )
-
-    def set_led_rbg(self, led_number, red, blue, green):
-        """Spins right specified number of steps"""
-        self.validate_led_number(led_number)
-        logger.info('Setting LED {} to red: {}, green: {}. blue: {}'.format(
-            led_number, red, green, blue
-        ))
-        self.driver.setLED(led_number, red, green, blue)
-
-    def set_all_leds_rbg(self, red, blue, green):
-        """Spins right specified number of steps"""
-        for led_number in self.led_numbers:
-            self.driver.setLED(led_number, red, green, blue)
-
-
-class ObstacleSensor(Driver):
-
-    def __init__(self, max_distance=None, *args, **kwargs):
-        super(ObstacleSensor, self).__init__(*args, **kwargs)
-        self.max_distance = max_distance or settings.BOT_DEFAULT_MAX_DISTANCE
-        logger.info('Max distance set to {}'.format(self.max_distance))
-
-    def left(self):
-        """Returns true if there is an obstacle to the left"""
-        obstacle = self.driver.irLeft()
-        logger.info('Left obstacle: {}'.format(obstacle))
-        return obstacle
-
-    def right(self):
-        """Returns true if there is an obstacle to the right"""
-        obstacle = self.driver.irRight()
-        logger.info('Right obstacle: {}'.format(obstacle))
-        return obstacle
-
-    def front(self):
-        """Returns true if there is an obstacle in front"""
-        obstacle = self.driver.irCentre()
-        logger.info('Front obstacle: {}'.format(obstacle))
-        return obstacle
-
-    def front_close(self):
-        front_close = self.distance() <= self.max_distance
-        logger.info('Front obstacle close: {}'.format(front_close))
-        return front_close
-
-    def distance(self):
-        """
-        Returns the distance in cm to the nearest reflecting object
-        in front of the bot
-        """
-        distance = self.driver.getDistance()
-        logger.info('Distance: {}'.format(distance))
-        return distance
-
-    def any(self):
-        """Returns true if there is any obstacle"""
-        any_obstacle = self.driver.irAll()
-        logger.info('Any obstacle: {}'.format(any_obstacle))
-        return any_obstacle
-
-
-class LineSensor(Driver):
-
-    def left(self):
-        """Returns True if left line sensor detected dark line"""
-        left = not self.driver.irLeftLine()
-        logger.info('Left line detected: {}'.format(left))
-        return left
-
-    def right(self):
-        """Returns True if right line sensor detected dark line"""
-        right = not self.driver.irRightLine()
-        logger.info('Right line detected: {}'.format(right))
-        return right
-
-
-class Bot(Driver):
+class Bot(object):
     # Number of steps required for 360 spin
     full_spin_steps = 44
     # Default number of steps
-    steps = 3
+    steps = 2
 
-    def __init__(
-            self, name=None, speed=None, max_distance=None, *args, **kwargs):
-        super(Bot, self).__init__(*args, **kwargs)
+    def __init__(self, publisher, *args, **kwargs):
+        self.publisher = publisher
+        self.driver = kwargs.get('driver', settings.BOT_DRIVER)
         self.driver.init()
-        self.name = name or settings.BOT_DEFAULT_NAME
-        logger.info('Bot name set to: {}'.format(self.name))
-        self.motors = Motors(speed=speed, driver=self.driver)
-        self.lights = Lights(driver=self.driver)
-        self.line_sensor = LineSensor(driver=self.driver)
-        self.obstacle_sensor = ObstacleSensor(
-            max_distance=max_distance, driver=self.driver
-        )
-        self.bluetooth = bluetooth.get_reader()
-        self.camera = camera.get_reader()
+
+        self.name = kwargs.get('name', settings.BOT_DEFAULT_NAME)
+
+        self.motors = pi2go.Motors(driver=self.driver)
+        self.lights = pi2go.Lights(driver=self.driver)
+        self.line_sensor = pi2go.LineSensor(driver=self.driver)
+        self.obstacle_sensor = pi2go.ObstacleSensor(driver=self.driver)
+
+        self.bluetooth = bluetooth.Service.get_subscriber()
+        self.camera = camera.Service.get_subscriber()
 
     def cleanup(self):
         logger.info('Cleaning up')
         self.driver.cleanup()
 
     @property
-    def ble_scan_results(self):
-        return self.bluetooth.read().data
+    def bluetooth_scan_results(self):
+        return self.bluetooth.receive().data
 
     @property
     def picture(self):
-        return self.camera.read().data
+        return self.camera.receive().data
 
     @property
     def left_line(self):
@@ -320,3 +169,45 @@ class Bot(Driver):
     def follow_line_and_avoid_obstacles_continuously(self):
         while True:
             self.follow_line_and_avoid_obstacles()
+
+
+class Service(service.Base):
+    name = 'api'
+
+    @staticmethod
+    def get_subscriber():
+        return pubsub.Subscriber(
+            publishers=(settings.LOCAL_BOT_PUBLISHER_ADDRESS, ),
+            topics=(settings.BOT_PUBLISHER_TOPIC, )
+        )
+
+    def run(self):
+        publisher = pubsub.Publisher(
+            port=settings.BLUETOOTH_PUBLISHER_PORT
+        )
+
+        with cleanup(Bot(publisher=publisher)) as bot:
+            self.drive(bot)
+
+    @classmethod
+    def drive(cls, bot):
+        if settings.BOT_WAIT_FOR_BUTTON_PRESS:
+            bot.wait_till_switch_pressed()
+
+        if settings.BOT_IN_WANDER_MODE:
+            bot.wander_continuously()
+
+        elif settings.BOT_IN_FOLLOW_MODE:
+            bot.follow_line_continuously()
+
+        elif settings.BOT_IN_FOLLOW_AVOID_MODE:
+            bot.follow_line_and_avoid_obstacles_continuously()
+
+
+@sentry
+def start():
+    return Service()
+
+
+if __name__ == '__main__':
+    start()
