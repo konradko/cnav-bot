@@ -1,10 +1,13 @@
-from contextlib import contextmanager
-import logging
+import contextlib
+import logging.config
 
 from cnavbot import settings
 
 
-@contextmanager
+logger = logging.getLogger()
+
+
+@contextlib.contextmanager
 def cleanup(bot):
     try:
         yield bot

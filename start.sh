@@ -17,3 +17,5 @@ bash /usr/src/app/config/bluetooth.sh
 
 echo "Starting Prometheus"
 bash /usr/src/app/config/prometheus.sh
+
+python cnavbot/main.py

@@ -1,17 +1,19 @@
 import time
 from multiprocessing import Process
 
-from cnavbot import settings, logger, messaging
+from cnavbot import settings
+from cnavbot.utils import logger
+from cnavbot.messaging import pubsub, messages
 
 
-class Service(object):
+class Bluetooth(object):
 
     def __init__(self, *args, **kwargs):
         self.driver = kwargs.get('driver', settings.BLUETOOTH_DRIVER)
         self.scanner = kwargs.get('scanner', settings.IBEACON_SCANNER)
         self.publisher = kwargs.get(
             'publisher',
-            messaging.LastMessagePublisher(
+            pubsub.LastMessagePublisher(
                 port=settings.BLUETOOTH_PUBLISHER_PORT
             )
         )
@@ -37,18 +39,18 @@ class Service(object):
                 logger.info("Scanning with bluetooth...")
                 events = self.scanner.parse_events(socket, loop_count=5)
 
-                self.publisher.send(messaging.JsonMessage(
+                self.publisher.send(messages.JsonMessage(
                     topic=settings.BLUETOOTH_PUBLISHER_TOPIC,
                     data=events,
                 ))
 
 
 def get_reader():
-    return messaging.LastMessageSubscriber(
+    return pubsub.LastMessageSubscriber(
         publishers=(settings.LOCAL_BLUETOOTH_PUBLISHER_ADDRESS, ),
         topics=(settings.BLUETOOTH_PUBLISHER_TOPIC, )
     )
 
 
 if __name__ == '__main__':
-    Service().run()
+    Bluetooth().run()

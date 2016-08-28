@@ -3,7 +3,8 @@ from unittest import TestCase
 import mock
 import pytest
 
-from cnavbot import api, settings
+from cnavbot import settings
+from cnavbot.bot import api
 
 
 class Test(TestCase):

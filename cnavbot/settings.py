@@ -1,6 +1,8 @@
+import logging.config
 import os
 
 from raven import Client
+
 
 PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
 
@@ -85,6 +87,30 @@ BOT_LOG_PATH = os.environ.get('BOT_LOG_PATH', '/tmp/cnavbot.log')
 SENTRY_DSN = os.environ.get('SENTRY_DSN', '')
 SENTRY_CLIENT = Client(SENTRY_DSN) if SENTRY_DSN else None
 
+logging.config.dictConfig({
+    'version': 1,
+    'formatters': {
+        'formatter': {
+            'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        }
+    },
+    'handlers': {
+        'rotating_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BOT_LOG_PATH,
+            'maxBytes': 10 * 1024 * 1024,
+            'backupCount': 5,
+            'formatter': 'formatter',
+            'level': logging.DEBUG,
+        }
+    },
+    'root': {
+        'handlers': [
+            'rotating_file'
+        ],
+        'level': logging.DEBUG,
+    },
+})
 
 # Messaging ###################################################################
 

@@ -1,20 +1,29 @@
-from cnavbot import api, camera, ble, utils, settings, logger
+from cnavbot import settings
+from cnavbot.utils import sentry, logger, cleanup
+from cnavbot.bot import api, bluetooth, camera
 
 
-@utils.sentry
+@sentry
 def run():
     logger.info("Starting...")
-    ble.Service().run()
+
+    bluetooth.Service().run()
     camera.Service().run()
-    with utils.cleanup(api.Bot()) as bot:
+
+    with cleanup(api.Bot()) as bot:
+
         if settings.BOT_WAIT_FOR_BUTTON_PRESS:
             bot.wait_till_switch_pressed()
+
         if settings.BOT_IN_WANDER_MODE:
             bot.wander_continuously()
+
         elif settings.BOT_IN_FOLLOW_MODE:
             bot.follow_line_continuously()
+
         elif settings.BOT_IN_FOLLOW_AVOID_MODE:
             bot.follow_line_and_avoid_obstacles_continuously()
+
     logger.info("Done")
 
 

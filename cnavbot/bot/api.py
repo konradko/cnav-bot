@@ -1,6 +1,8 @@
 import time
 
-from cnavbot import settings, logger, ble, camera
+from cnavbot import settings
+from cnavbot.utils import logger
+from cnavbot.bot import bluetooth, camera
 
 
 class Driver(object):
@@ -173,7 +175,7 @@ class Bot(Driver):
         self.obstacle_sensor = ObstacleSensor(
             max_distance=max_distance, driver=self.driver
         )
-        self.bluetooth = ble.get_reader()
+        self.bluetooth = bluetooth.get_reader()
         self.camera = camera.get_reader()
 
     def cleanup(self):

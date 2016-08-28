@@ -1,0 +1,191 @@
+import datetime
+from uuid import uuid4
+import os
+import time
+
+from cnavbot import settings
+from cnavbot.utils import logger
+from cnavbot.messaging import serializers
+
+
+class InvalidMessageError(Exception):
+    pass
+
+
+class Message(object):
+    serializer = None
+
+    def __init__(self, *args, **kwargs):
+        """
+        Args:
+            topic (str): topic of the message
+            data (str): message data
+        """
+        self.serializer = kwargs.get('serializer', self.serializer)
+        self.uuid = kwargs.get('uuid', str(uuid4()))
+        self.timestamp = kwargs.get('timestamp', time.time())
+        self.topic = kwargs.get('topic')
+        self.data = kwargs.get('data')
+
+    def validate(self):
+        logger.info("Validating message '{}'".format(self.uuid))
+        try:
+            self.serialize()
+        except Exception as e:
+            raise InvalidMessageError(u"Invalid message: {}".format(e))
+
+    def serialize(self):
+        """Returns serialized message
+
+        Returns:
+            str: serialized message
+        """
+        logger.info("Serializing message '{}'".format(self.uuid))
+        return "{topic} {id} {timestamp} {data_type} {data}".format(
+            topic=self.topic,
+            id=self.uuid,
+            timestamp=self.timestamp,
+            data_type=self.data_type,
+            data=self.serializer.serialize(self.data)
+        )
+
+    def deserialize(self, raw_message):
+        """Deserializes a message
+
+        Args:
+            raw_message (str): serialized message
+
+        Returns:
+            Message: new instance of the message
+        """
+        logger.info("Deserializing message...")
+        try:
+            topic, uuid, timestamp, data_type, data = raw_message.split()
+
+            if data_type != self.data_type:
+                raise InvalidMessageError(
+                    u"Invalid data_type '{}', "
+                    "expected: '{}'".format(
+                        data_type, self.data_type
+                    )
+                )
+
+            data = self.serializer.deserialize_data(data)
+        except Exception as e:
+            raise InvalidMessageError(u"Invalid message: {}".format(e))
+        else:
+            logger.info("Message '{}' deserialized".format(uuid))
+            return self.__class__(
+                topic=topic,
+                uuid=uuid,
+                timestamp=timestamp,
+                data_type=data_type,
+                data=data,
+            )
+
+    def __unicode__(self):
+        return self.serialize()
+
+
+class Unicode(Message):
+    serializer = serializers.Unicode
+
+
+class Base64(Message):
+    serializer = serializers.Base64
+    file_path = None
+
+    @staticmethod
+    def get_topic_storage_dir(topic):
+        topic_storage_dir = os.path.join(
+            settings.FILE_MESSAGE_STORAGE_PATH, topic
+        )
+
+        if not os.path.exists(topic_storage_dir):
+            os.makedirs(topic_storage_dir)
+
+        return topic_storage_dir
+
+    def get_file_name(self):
+        return "{}-{}".format(
+            datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S"),
+            self.uuid,
+        )
+
+    def get_file_path(self, file_name=None):
+        return os.path.join(
+            self.get_topic_storage_dir(self.topic),
+            file_name or self.get_file_name()
+        )
+
+    def save(self, file_name=None):
+        file_path = self.get_file_path(file_name)
+
+        logger.info("Saving message '{}' data to '{}'".format(
+            self.uuid, file_path
+        ))
+
+        with open(file_path) as destination:
+            destination.write(bytearray(self.data))
+
+        logger.info("Message '{}' data saved".format(self.uuid))
+        self.file_path = file_path
+
+        return file_path
+
+
+class JSON(Message):
+    serializer = serializers.JSON
+
+
+class FilePath(Message):
+    serializer = serializers.FilePath
+
+    @property
+    def file_path(self):
+        return self.data['file_path']
+
+
+MESSAGE_FOR_DATA_TYPE = {
+    Unicode.serializer.data_type: Unicode,
+    Base64.serializer.data_type: Base64,
+    JSON.serializer.data_type: JSON,
+    FilePath.serializer.data_type: FilePath,
+}
+
+
+def parse(raw_message):
+    """Parses a raw message and returns a Message instance of correct type
+
+    Args:
+        raw_message (str): serialized message
+
+    Returns:
+        Message: deserialized message
+    """
+    logger.info("Deserializing message...")
+    try:
+        topic, uuid, timestamp, data_type, data = raw_message.split()
+    except Exception as e:
+        raise InvalidMessageError(u"Invalid message: {}".format(e))
+    else:
+        if data_type not in MESSAGE_FOR_DATA_TYPE:
+            raise InvalidMessageError(
+                u"Invalid message data_type '{}', "
+                "allowed data types: '{}'".format(
+                    data_type, ", ".join(MESSAGE_FOR_DATA_TYPE.keys())
+                )
+            )
+
+        message = MESSAGE_FOR_DATA_TYPE[data_type]
+        data = message.serializer.deserialize(data)
+
+        logger.info("Message '{}' deserialized".format(uuid))
+
+        return message(
+            topic=topic,
+            uuid=uuid,
+            timestamp=timestamp,
+            data_type=data_type,
+            data=data,
+        )

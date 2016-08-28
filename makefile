@@ -9,9 +9,7 @@ clean:
 	-find . -type f -name "*.pyc" -delete
 
 run_on_rpi:
-	# Initialise hardware and deamons
-	./init.sh
-	python cnavbot/main.py
+	./start.sh
 
 install_test_requirements:
 	pip install --upgrade pip
@@ -28,14 +26,13 @@ upgrade_requirements:
 	pip-compile --upgrade --output-file requirements/rpi.txt requirements/rpi.in
 	pip-compile --upgrade --output-file requirements/test.txt requirements/test.in
 
-RESIN_SSH := resin ssh
 # Set hashes according to resin.io app dashboard
 resin_ssh_bot1:
-	$(RESIN_SSH) $(CNAV_BOT1_ID)
+	resin ssh $(CNAV_BOT1_ID)
 resin_ssh_bot2:
-	$(RESIN_SSH) $(CNAV_BOT2_ID)
+	resin ssh $(CNAV_BOT2_ID)
 resin_ssh_bot3:
-	$(RESIN_SSH) $(CNAV_BOT3_ID)
+	resin ssh $(CNAV_BOT3_ID)
 
 # Set addresses as env vars according to resin.io app dashboard
 ssh_bot1:
@@ -61,4 +58,4 @@ test: static_analysis
 deploy:
 	git push resin master
 
-.PHONY: build clean install_test_requirements test static_analysis pep8 xenon test_in_docker run_on_rpi update_requirements upgrade_requirements deploy ssh_bot1 ssh_bot2 ssh_bot3
+.PHONY: build clean install_test_requirements test static_analysis pep8 xenon run_on_rpi update_requirements upgrade_requirements deploy ssh_bot1 ssh_bot2 ssh_bot3

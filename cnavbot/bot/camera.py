@@ -3,10 +3,12 @@ from io import BytesIO
 import time
 from multiprocessing import Process
 
-from cnavbot import settings, logger, messaging
+from cnavbot import settings
+from cnavbot.utils import logger
+from cnavbot.messaging import pubsub, messages
 
 
-class Service(object):
+class Camera(object):
 
     def __init__(self, *args, **kwargs):
         self.interval = kwargs.get('interval', settings.CAMERA_INTERVAL)
@@ -14,7 +16,7 @@ class Service(object):
         self.camera = kwargs.get('camera', settings.CAMERA)
         self.publisher = kwargs.get(
             'publisher',
-            messaging.LastMessagePublisher(
+            pubsub.LastMessagePublisher(
                 port=settings.CAMERA_PUBLISHER_PORT
             )
         )
@@ -38,7 +40,7 @@ class Service(object):
                 file_name = self.get_file_name()
                 logger.info("Picture taken: {}".format(file_name))
 
-                self.publisher.send(messaging.FilePathMessage(
+                self.publisher.send(messages.FilePathMessage(
                     topic=settings.CAMERA_PUBLISHER_TOPIC,
                     data=stream.read(),
                     file_name=file_name,
@@ -46,11 +48,11 @@ class Service(object):
 
 
 def get_reader():
-    return messaging.LastMessageSubscriber(
+    return pubsub.LastMessageSubscriber(
         publishers=(settings.LOCAL_CAMERA_PUBLISHER_ADDRESS, ),
         topics=(settings.CAMERA_PUBLISHER_TOPIC, )
     )
 
 
 if __name__ == '__main__':
-    Service().run()
+    Camera().run()
