@@ -23,7 +23,7 @@ if RUNNING_ON_PI:
     from ibeaconscanner import blescan  # noqa
     IBEACON_SCANNER = blescan
 
-    import picamera
+    import picamera  # noqa
     CAMERA = picamera
 else:
     BOT_DRIVER = None

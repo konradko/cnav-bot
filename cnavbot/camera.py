@@ -10,7 +10,7 @@ class Service(object):
 
     def __init__(self, *args, **kwargs):
         self.interval = kwargs.get('interval') or settings.CAMERA_INTERVAL
-        self.interval = kwargs.get('resolution') or settings.CAMERA_RESOLUTION
+        self.resolution = kwargs.get('resolution') or settings.CAMERA_RESOLUTION
         self.camera = kwargs.get('camera') or settings.CAMERA
         self.publisher = kwargs.get('scanner') or messaging.Publisher(
             port=settings.CAMERA_PUBLISHER_PORT
