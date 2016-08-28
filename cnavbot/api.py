@@ -199,12 +199,13 @@ class Bot(Driver):
     @property
     def switch_pressed(self):
         switch_pressed = self.driver.getSwitch()
-        logger.info('Switch pressed: {}'.format(switch_pressed))
+        if switch_pressed:
+            logger.info('Switch pressed')
         return switch_pressed
 
     def wait_till_switch_pressed(self):
+        logger.info('Waiting for switch to be pressed...')
         while True:
-            logger.info('Waiting for switch to be pressed')
             if self.switch_pressed:
                 return
             else:

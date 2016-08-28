@@ -7,11 +7,11 @@ from cnavbot import settings, logger, messaging
 class Service(object):
 
     def __init__(self, *args, **kwargs):
-        self.driver = kwargs.get('driver') or settings.BLUETOOTH_DRIVER
-        self.scanner = kwargs.get('scanner') or settings.IBEACON_SCANNER
-        self.publisher = kwargs.get('scanner') or messaging.Publisher(
+        self.driver = kwargs.get('driver', settings.BLUETOOTH_DRIVER)
+        self.scanner = kwargs.get('scanner', settings.IBEACON_SCANNER)
+        self.publisher = kwargs.get('publisher', messaging.Publisher(
             port=settings.BLUETOOTH_PUBLISHER_PORT
-        )
+        ))
 
         self.scanning = Process(target=self.scan_and_publish_continuously)
 

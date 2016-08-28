@@ -33,8 +33,8 @@ class Message(object):
         except Exception as e:
             raise InvalidMessageError(u"Invalid message: {}".format(e))
 
-    def serialize_data(self, data):
-        return str(data)
+    def serialize_data(self):
+        return str(self.data)
 
     def serialize(self):
         """Returns serialized message
@@ -45,11 +45,11 @@ class Message(object):
         return "{topic} {timestamp} {data}".format(
             topic=self.topic,
             timestamp=self.timestamp,
-            data=self.serialize_data(self.data)
+            data=self.serialize_data()
         )
 
-    def deserialize_data(self, data):
-        return str(data)
+    def deserialize_data(self):
+        return str(self.data)
 
     def deserialize(self, message):
         """Deserializes a message
@@ -74,37 +74,20 @@ class Message(object):
 
 class JsonMessage(Message):
 
-    def serialize_data(self, data):
-        return json.dumps(data)
+    def serialize_data(self):
+        return json.dumps(self.data)
 
-    def deserialize_data(self, data):
-        return json.loads(data)
+    def deserialize_data(self):
+        return json.loads(self.data)
 
 
 class Base64Message(Message):
 
-    def serialize_data(self, data):
-        return base64.b64encode(data)
+    def serialize_data(self):
+        return base64.b64encode(self.data)
 
-    def deserialize_data(self, data):
-        return base64.b64decode(data)
-
-
-class FileMessage(Base64Message):
-
-    def __init__(self, file_name, *args, **kwargs):
-        self.file_name = file_name or str(uuid.uuid4())
-        super(FileMessage, self).__init__(*args, **kwargs)
-
-    def serialize_data(self, data):
-        with open(data, 'rb') as source:
-            return base64.b64encode(bytearray(source.read()))
-
-    def deserialize_data(self, data):
-        return self.save_file(
-            topic=self.topic,
-            file_data=bytearray(base64.b64decode(data))
-        )
+    def deserialize_data(self):
+        return base64.b64decode(self.data)
 
     @staticmethod
     def get_topic_storage_dir(topic):
@@ -117,15 +100,49 @@ class FileMessage(Base64Message):
 
         return topic_storage_dir
 
-    def save_file(self, topic, file_data):
+    def save_to_file(self, file_data, file_name):
         file_path = os.path.join(
-            self.get_topic_storage_dir(topic), self.file_name
+            self.get_topic_storage_dir(self.topic), file_name
         )
 
         with open(file_path) as destination:
             destination.write(file_data)
 
         return file_path
+
+
+class FileMessage(Base64Message):
+
+    def __init__(self, *args, **kwargs):
+        self.file_name = kwargs.pop('file_name', str(uuid.uuid4()))
+        super(FileMessage, self).__init__(*args, **kwargs)
+
+    def serialize_data(self):
+        with open(self.data, 'rb') as source:
+            return base64.b64encode(bytearray(source.read()))
+
+    def deserialize_data(self):
+        return self.save_to_file(
+            file_data=bytearray(base64.b64decode(self.data)),
+            file_name=self.file_name,
+        )
+
+
+class Base64ToFileMessage(FileMessage):
+
+    def serialize_data(self):
+        if isinstance(self.data, basestring):
+            serialized = super(Base64ToFileMessage, self).serialize_data()
+        else:
+            serialized = base64.b64encode(bytearray(self.data))
+
+        return serialized
+
+    def deserialize_data(self):
+        return self.save_to_file(
+            file_data=bytearray(base64.b64decode(self.data)),
+            file_name=self.file_name,
+        )
 
 
 class Publisher(object):
@@ -210,4 +227,9 @@ class LastBase64MessageSubscriber(LastMessageSubscriber):
 
 class LastFileMessageSubscriber(LastMessageSubscriber):
     message_class = FileMessage
+
+
+class LastBase64ToFileMessageSubscriber(LastMessageSubscriber):
+    message_class = Base64ToFileMessage
+
 

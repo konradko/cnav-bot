@@ -9,12 +9,12 @@ from cnavbot import settings, logger, messaging
 class Service(object):
 
     def __init__(self, *args, **kwargs):
-        self.interval = kwargs.get('interval') or settings.CAMERA_INTERVAL
-        self.resolution = kwargs.get('resolution') or settings.CAMERA_RESOLUTION
-        self.camera = kwargs.get('camera') or settings.CAMERA
-        self.publisher = kwargs.get('scanner') or messaging.Publisher(
+        self.interval = kwargs.get('interval', settings.CAMERA_INTERVAL)
+        self.resolution = kwargs.get('resolution', settings.CAMERA_RESOLUTION)
+        self.camera = kwargs.get('camera', settings.CAMERA)
+        self.publisher = kwargs.get('scanner', messaging.Publisher(
             port=settings.CAMERA_PUBLISHER_PORT
-        )
+        ))
         self.capturing = Process(target=self.take_picture_continously)
 
     def run(self):
@@ -32,17 +32,18 @@ class Service(object):
                 time.sleep(self.interval)
                 stream = BytesIO()
                 camera.capture(stream, 'jpeg')
-                logger.info("Picture taken")
+                file_name = self.get_file_name()
+                logger.info("Picture taken: {}".format(file_name))
 
-                self.publisher.send(messaging.FileMessage(
+                self.publisher.send(messaging.Base64ToFileMessage(
                     topic=settings.CAMERA_PUBLISHER_TOPIC,
                     data=stream,
-                    file_name=self.get_file_name(),
+                    file_name=file_name,
                 ))
 
 
 def get_reader():
-    return messaging.LastFileMessageSubscriber(
+    return messaging.LastBase64ToFileMessageSubscriber(
         publishers=(settings.LOCAL_CAMERA_PUBLISHER_ADDRESS, ),
         topics=(settings.CAMERA_PUBLISHER_TOPIC, )
     )
