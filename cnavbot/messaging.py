@@ -26,7 +26,6 @@ class Message(object):
         self.topic = topic
         self.data = data
         self.timestamp = timestamp or time.time()
-        self.validate()
 
     def validate(self):
         try:
@@ -49,12 +48,10 @@ class Message(object):
             data=self.serialize_data(self.data)
         )
 
-    @classmethod
-    def deserialize_data(cls, data):
+    def deserialize_data(self, data):
         return str(data)
 
-    @classmethod
-    def deserialize(cls, message):
+    def deserialize(self, message):
         """Deserializes a message
 
         Args:
@@ -65,11 +62,11 @@ class Message(object):
         """
         try:
             topic, timestamp, data = message.split()
-            data = cls.deserialize_data(data)
+            data = self.deserialize_data(data)
         except Exception as e:
             raise InvalidMessageError(u"Invalid message: {}".format(e))
         else:
-            return cls(topic=topic, data=data)
+            return self.__class__(topic=topic, data=data)
 
     def __unicode__(self):
         return self.serialize()
@@ -80,8 +77,7 @@ class JsonMessage(Message):
     def serialize_data(self, data):
         return json.dumps(data)
 
-    @classmethod
-    def deserialize_data(cls, data):
+    def deserialize_data(self, data):
         return json.loads(data)
 
 
@@ -90,8 +86,7 @@ class Base64Message(Message):
     def serialize_data(self, data):
         return base64.b64encode(data)
 
-    @classmethod
-    def deserialize_data(cls, data):
+    def deserialize_data(self, data):
         return base64.b64decode(data)
 
 
@@ -99,15 +94,17 @@ class FileMessage(Base64Message):
 
     def __init__(self, file_name, *args, **kwargs):
         self.file_name = file_name or str(uuid.uuid4())
-        kwargs['data'] = self.save_file(
-            topic=kwargs['topic'],
-            file_data=bytearray(base64.b64decode(kwargs['data']))
-        )
         super(FileMessage, self).__init__(*args, **kwargs)
 
     def serialize_data(self, data):
         with open(data, 'rb') as source:
             return base64.b64encode(bytearray(source.read()))
+
+    def deserialize_data(self, data):
+        return self.save_file(
+            topic=self.topic,
+            file_data=bytearray(base64.b64decode(data))
+        )
 
     @staticmethod
     def get_topic_storage_dir(topic):
