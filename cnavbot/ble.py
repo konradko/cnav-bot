@@ -22,6 +22,7 @@ class Service(object):
     def scan_and_publish_continuously(self):
         """Scan for nearby bluetooth devices"""
         try:
+            logger.info("Connecting to bluetooth device...")
             socket = self.driver.hci_open_dev(0)
             self.scanner.hci_le_set_scan_parameters(socket)
             self.scanner.hci_enable_le_scan(socket)
@@ -30,6 +31,7 @@ class Service(object):
         else:
             while True:
                 time.sleep(settings.BLUETOOTH_SCAN_INTERVAL)
+                logger.info("Scanning with bluetooth...")
                 events = self.scanner.parse_events(socket, loop_count=5)
 
                 self.publisher.send(messaging.Message(
