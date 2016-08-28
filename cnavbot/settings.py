@@ -38,7 +38,7 @@ BLUETOOTH_INIT_SCRIPT = os.path.join(
     PROJECT_ROOT, '..', 'config', 'bluetooth.sh'
 )
 # In seconds
-BLUETOOTH_SCAN_INTERVAL = os.getenv('BLUETOOTH_SCAN_INTERVAL', 1)
+BLUETOOTH_SCAN_INTERVAL = int(os.getenv('BLUETOOTH_SCAN_INTERVAL', 1))
 
 # Camera ###################################################################
 CAMERA_INTERVAL = int(os.getenv('CAMERA_INTERVAL', 1))

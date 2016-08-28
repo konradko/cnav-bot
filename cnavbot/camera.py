@@ -12,9 +12,12 @@ class Service(object):
         self.interval = kwargs.get('interval', settings.CAMERA_INTERVAL)
         self.resolution = kwargs.get('resolution', settings.CAMERA_RESOLUTION)
         self.camera = kwargs.get('camera', settings.CAMERA)
-        self.publisher = kwargs.get('scanner', messaging.Publisher(
-            port=settings.CAMERA_PUBLISHER_PORT
-        ))
+        self.publisher = kwargs.get(
+            'publisher',
+            messaging.LastMessagePublisher(
+                port=settings.CAMERA_PUBLISHER_PORT
+            )
+        )
         self.capturing = Process(target=self.take_picture_continously)
 
     def run(self):
@@ -35,7 +38,7 @@ class Service(object):
                 file_name = self.get_file_name()
                 logger.info("Picture taken: {}".format(file_name))
 
-                self.publisher.send(messaging.Base64ToFileMessage(
+                self.publisher.send(messaging.FileMessage(
                     topic=settings.CAMERA_PUBLISHER_TOPIC,
                     data=stream,
                     file_name=file_name,
@@ -43,7 +46,7 @@ class Service(object):
 
 
 def get_reader():
-    return messaging.LastBase64ToFileMessageSubscriber(
+    return messaging.LastFileMessageSubscriber(
         publishers=(settings.LOCAL_CAMERA_PUBLISHER_ADDRESS, ),
         topics=(settings.CAMERA_PUBLISHER_TOPIC, )
     )

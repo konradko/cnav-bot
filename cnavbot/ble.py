@@ -9,9 +9,12 @@ class Service(object):
     def __init__(self, *args, **kwargs):
         self.driver = kwargs.get('driver', settings.BLUETOOTH_DRIVER)
         self.scanner = kwargs.get('scanner', settings.IBEACON_SCANNER)
-        self.publisher = kwargs.get('publisher', messaging.Publisher(
-            port=settings.BLUETOOTH_PUBLISHER_PORT
-        ))
+        self.publisher = kwargs.get(
+            'publisher',
+            messaging.LastMessagePublisher(
+                port=settings.BLUETOOTH_PUBLISHER_PORT
+            )
+        )
 
         self.scanning = Process(target=self.scan_and_publish_continuously)
 
