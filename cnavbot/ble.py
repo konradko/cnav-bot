@@ -37,14 +37,14 @@ class Service(object):
                 logger.info("Scanning with bluetooth...")
                 events = self.scanner.parse_events(socket, loop_count=5)
 
-                self.publisher.send(messaging.Message(
+                self.publisher.send(messaging.JsonMessage(
                     topic=settings.BLUETOOTH_PUBLISHER_TOPIC,
                     data=events,
                 ))
 
 
 def get_reader():
-    return messaging.LastJsonMessageSubscriber(
+    return messaging.LastMessageSubscriber(
         publishers=(settings.LOCAL_BLUETOOTH_PUBLISHER_ADDRESS, ),
         topics=(settings.BLUETOOTH_PUBLISHER_TOPIC, )
     )

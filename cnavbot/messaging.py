@@ -1,6 +1,7 @@
 import base64
+import datetime
 import json
-import uuid
+from uuid import uuid4
 import os
 import time
 
@@ -13,29 +14,71 @@ class InvalidMessageError(Exception):
     pass
 
 
-class Message(object):
-    """Summary"""
+class DataSerializer(object):
+    data_type = None
 
-    def __init__(self, topic, data, timestamp=None):
+    def serialize(self, data):
+        raise NotImplementedError()
+
+    @classmethod
+    def deserialize(cls, data):
+        raise NotImplementedError()
+
+
+class UnicodeSerializer(DataSerializer):
+    data_type = 'text'
+
+    def serialize(self, data):
+        return unicode(data)
+
+    @classmethod
+    def deserialize(cls, data):
+        return unicode(data)
+
+
+class JsonSerializer(DataSerializer):
+    data_type = 'json'
+
+    def serialize(self, data):
+        return json.dumps(data)
+
+    @classmethod
+    def deserialize(cls, data):
+        return json.loads(data)
+
+
+class Base64Serializer(DataSerializer):
+    data_type = 'base64'
+
+    def serialize(self, data):
+        return base64.b64encode(data)
+
+    @classmethod
+    def deserialize(cls, data):
+        return base64.b64decode(data)
+
+
+class Message(object):
+    serializer = None
+
+    def __init__(self, *args, **kwargs):
         """
         Args:
             topic (str): topic of the message
             data (str): message data
         """
-        self.id = str(uuid.uuid4())
-        self.topic = topic
-        self.data = data
-        self.timestamp = timestamp or time.time()
+        self.serializer = kwargs.get('serializer', self.serializer)
+        self.uuid = kwargs.get('uuid', str(uuid4()))
+        self.timestamp = kwargs.get('timestamp', time.time())
+        self.topic = kwargs.get('topic')
+        self.data = kwargs.get('data')
 
     def validate(self):
-        logger.info("Validating message '{}'".format(self.id))
+        logger.info("Validating message '{}'".format(self.uuid))
         try:
             self.serialize()
         except Exception as e:
             raise InvalidMessageError(u"Invalid message: {}".format(e))
-
-    def serialize_data(self, data):
-        return str(data)
 
     def serialize(self):
         """Returns serialized message
@@ -43,58 +86,60 @@ class Message(object):
         Returns:
             str: serialized message
         """
-        logger.info("Serializing message '{}'".format(self.id))
-        return "{topic} {timestamp} {data}".format(
+        logger.info("Serializing message '{}'".format(self.uuid))
+        return "{topic} {id} {timestamp} {data_type} {data}".format(
             topic=self.topic,
+            id=self.uuid,
             timestamp=self.timestamp,
-            data=self.serialize_data(self.data)
+            data_type=self.data_type,
+            data=self.serializer.serialize(self.data)
         )
 
-    @classmethod
-    def deserialize_data(cls, data):
-        return str(data)
-
-    @classmethod
-    def deserialize(cls, message):
+    def deserialize(self, raw_message):
         """Deserializes a message
 
         Args:
-            message (str): serialized message
+            raw_message (str): serialized message
 
         Returns:
-            Message: deserialized message
+            Message: new instance of the message
         """
         logger.info("Deserializing message...")
         try:
-            topic, timestamp, data = message.split()
-            data = cls.deserialize_data(data)
+            topic, uuid, timestamp, data_type, data = raw_message.split()
+
+            if data_type != self.data_type:
+                raise InvalidMessageError(
+                    u"Invalid data_type '{}', "
+                    "expected: '{}'".format(
+                        data_type, self.data_type
+                    )
+                )
+
+            data = self.serializer.deserialize_data(data)
         except Exception as e:
             raise InvalidMessageError(u"Invalid message: {}".format(e))
         else:
-            return cls(topic=topic, data=data)
+            logger.info("Message '{}' deserialized".format(uuid))
+            return self.__class__(
+                topic=topic,
+                uuid=uuid,
+                timestamp=timestamp,
+                data_type=data_type,
+                data=data,
+            )
 
     def __unicode__(self):
         return self.serialize()
 
 
-class JsonMessage(Message):
-
-    def serialize_data(self, data):
-        return json.dumps(data)
-
-    @classmethod
-    def deserialize_data(cls, data):
-        return json.loads(data)
+class UnicodeMessage(Message):
+    serializer = UnicodeSerializer
 
 
 class Base64Message(Message):
-
-    def serialize_data(self, data):
-        return base64.b64encode(data)
-
-    @classmethod
-    def deserialize_data(cls, data):
-        return base64.b64decode(data)
+    serializer = Base64Serializer
+    file_path = None
 
     @staticmethod
     def get_topic_storage_dir(topic):
@@ -107,39 +152,90 @@ class Base64Message(Message):
 
         return topic_storage_dir
 
-    @classmethod
-    def save_to_file(self, file_data, file_name):
-        logger.info("Saving message '{}' data to a file".format(self.id))
-        file_path = os.path.join(
-            self.get_topic_storage_dir(self.topic), file_name
+    def get_file_name(self):
+        return "{}-{}".format(
+            datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S"),
+            self.uuid,
         )
 
+    def get_file_path(self, file_name=None):
+        return os.path.join(
+            self.get_topic_storage_dir(self.topic),
+            file_name or self.get_file_name()
+        )
+
+    def save(self, file_name=None):
+        file_path = self.get_file_path(file_name)
+
+        logger.info("Saving message '{}' data to '{}'".format(
+            self.uuid, file_path
+        ))
+
         with open(file_path) as destination:
-            destination.write(file_data)
+            destination.write(bytearray(self.data))
+
+        logger.info("Message '{}' data saved".format(self.uuid))
+        self.file_path = file_path
 
         return file_path
 
 
-class FileMessage(Base64Message):
+class JsonMessage(Message):
+    serializer = JsonSerializer
 
-    def __init__(self, *args, **kwargs):
-        self.file_name = kwargs.pop('file_name', str(uuid.uuid4()))
-        super(FileMessage, self).__init__(*args, **kwargs)
 
-        if not isinstance(self.data, basestring):
-            self.data = self.save_to_file(
-                file_data=bytearray(base64.b64decode(self.data)),
-                file_name=self.file_name,
-            )
+class FilePathMessage(JsonMessage):
 
-    def serialize_data(self, data):
-        if isinstance(data, basestring):
-            with open(data, 'rb') as source:
-                serialized = base64.b64encode(bytearray(source.read()))
+    @property
+    def file_path(self):
+        return self.data['file_path']
+
+
+class MessageParser(object):
+
+    message_for_data_type = {
+        UnicodeMessage.serializer.data_type: UnicodeMessage,
+        Base64Message.serializer.data_type: Base64Message,
+        JsonMessage.serializer.data_type: JsonMessage,
+        FilePathMessage.serializer.data_type: FilePathMessage,
+    }
+
+    @classmethod
+    def parse(cls, raw_message):
+        """Parses a raw message and returns a Message instance of correct type
+
+        Args:
+            raw_message (str): serialized message
+
+        Returns:
+            Message: deserialized message
+        """
+        logger.info("Deserializing message...")
+        try:
+            topic, uuid, timestamp, data_type, data = raw_message.split()
+        except Exception as e:
+            raise InvalidMessageError(u"Invalid message: {}".format(e))
         else:
-            serialized = base64.b64encode(bytearray(data))
+            if data_type not in cls.serializers:
+                raise InvalidMessageError(
+                    u"Invalid message data_type '{}', "
+                    "allowed data types: '{}'".format(
+                        data_type, ", ".join(cls.serializers.keys())
+                    )
+                )
 
-        return serialized
+            message = cls.message_for_data_type[data_type]
+            data = message.serializer.deserialize(data)
+
+            logger.info("Message '{}' deserialized".format(uuid))
+
+            return message(
+                topic=topic,
+                uuid=uuid,
+                timestamp=timestamp,
+                data_type=data_type,
+                data=data,
+            )
 
 
 class Socket(object):
@@ -169,19 +265,17 @@ class Publisher(Socket):
         Args:
             message (Message): Message to send
         """
-        logger.info("Sending message {} to topic {}".format(
-            message.id, message.topic
+        logger.info("Sending message '{}'' to topic {}".format(
+            message.uuid, message.topic
         ))
         self.socket.send(message.serialize())
-        logger.info("Message {} sent".format(message.id))
+        logger.info("Message '{}'' sent".format(message.uuid))
 
 
 class Subscriber(Socket):
     """ZMQ subscriber"""
 
-    message_class = Message
-
-    def __init__(self, publishers, topics, message_class=None):
+    def __init__(self, publishers, topics):
         """Init subscriber
 
         Args:
@@ -195,9 +289,6 @@ class Subscriber(Socket):
 
         for topic in topics:
             self.subscribe(topic)
-
-        if message_class:
-            self.message_class = message_class
 
     def connect(self, publisher):
         logger.info("Connecting to publisher {}".format(publisher))
@@ -220,7 +311,33 @@ class Subscriber(Socket):
         """
         logger.info("Reading message")
         message = self.socket.recv()
-        return self.message_class.deserialize(message=message)
+        return MessageParser.parse(raw_message=message)
+
+
+class MessageForwarder(Subscriber):
+
+    def __init__(self, publisher, *args, **kwargs):
+        super(MessageForwarder, self).__init__(*args, **kwargs)
+        self.publisher = publisher
+
+    def read(self, *args, **kwargs):
+        """Returns a single message from the publishers
+
+        Returns:
+            Message: deserialized message
+        """
+        message = super(MessageForwarder, self).read(*args, **kwargs)
+        self.forward(message)
+        return message
+
+    def forward(self, message):
+        """Forward a message
+
+        Args:
+            message (Message): Message to forward
+        """
+        logger.info("Forwarding message '{}'".format(message.uuid))
+        self.publisher.send(message)
 
 
 class LastMessageMixin(object):
@@ -241,15 +358,3 @@ class LastMessagePublisher(LastMessageMixin, Publisher):
 class LastMessageSubscriber(LastMessageMixin, Subscriber):
     """ZMQ subscriber reading only the latest message"""
     pass
-
-
-class LastJsonMessageSubscriber(LastMessageSubscriber):
-    message_class = JsonMessage
-
-
-class LastBase64MessageSubscriber(LastMessageSubscriber):
-    message_class = Base64Message
-
-
-class LastFileMessageSubscriber(LastMessageSubscriber):
-    message_class = FileMessage

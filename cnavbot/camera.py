@@ -38,15 +38,15 @@ class Service(object):
                 file_name = self.get_file_name()
                 logger.info("Picture taken: {}".format(file_name))
 
-                self.publisher.send(messaging.FileMessage(
+                self.publisher.send(messaging.FilePathMessage(
                     topic=settings.CAMERA_PUBLISHER_TOPIC,
-                    data=stream,
+                    data=stream.read(),
                     file_name=file_name,
                 ))
 
 
 def get_reader():
-    return messaging.LastFileMessageSubscriber(
+    return messaging.LastMessageSubscriber(
         publishers=(settings.LOCAL_CAMERA_PUBLISHER_ADDRESS, ),
         topics=(settings.CAMERA_PUBLISHER_TOPIC, )
     )
