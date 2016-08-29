@@ -37,7 +37,23 @@ class Bluetooth(service.Resource):
 
     def scan(self):
         logger.debug("Scanning with bluetooth...")
-        return self.scanner.parse_events(self.socket, loop_count=5)
+        return [
+            self.parse(result) for result in
+            self.scanner.parse_events(self.socket, loop_count=10)
+        ]
+
+    @staticmethod
+    def parse(result):
+        mac, uuid, major, minor, txpower, rssi = result.split(",")
+
+        return {
+            'mac': mac,
+            'uuid': uuid,
+            'major': major,
+            'minor': minor,
+            'txpower': txpower,
+            'rssi': rssi,
+        }
 
 
 class Service(service.Service):
