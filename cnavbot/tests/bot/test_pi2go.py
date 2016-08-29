@@ -4,7 +4,7 @@ import mock
 import pytest
 
 from cnavbot import settings
-from cnavbot.bot import pi2go
+from cnavbot.services import pi2go
 
 
 class TestMotors(TestCase):

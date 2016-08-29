@@ -1,19 +1,22 @@
 import time
 
 from cnavbot import settings
-from cnavbot.bot import bluetooth, camera, pi2go
-from cnavbot.utils import logger, sentry, cleanup
-from cnavbot.messaging import pubsub, service
+from cnavbot.services import bluetooth, camera, pi2go
+from cnavbot.utils import logger, sentry
+from cnavbot.messaging import service
 
 
-class Bot(object):
+class Bot(service.Resource):
+    topics = {
+        'drive': settings.BOT_TOPIC,
+    }
+
     # Number of steps required for 360 spin
     full_spin_steps = 44
     # Default number of steps
     steps = 2
 
-    def __init__(self, publisher, *args, **kwargs):
-        self.publisher = publisher
+    def __init__(self, *args, **kwargs):
         self.driver = kwargs.get('driver', settings.BOT_DRIVER)
         self.driver.init()
 
@@ -173,38 +176,29 @@ class Bot(object):
         while True:
             self.follow_line_and_avoid_obstacles()
 
+    def run(self, publisher):
+        self.publisher = publisher
 
-class Service(service.Base):
-    name = 'api'
-
-    @staticmethod
-    def get_subscriber():
-        return pubsub.Subscriber(
-            publishers=(settings.LOCAL_BOT_PUBLISHER_ADDRESS, ),
-            topics=(settings.BOT_PUBLISHER_TOPIC, )
-        )
-
-    def run(self):
-        publisher = pubsub.Publisher(
-            port=settings.BOT_PUBLISHER_PORT
-        )
-
-        with cleanup(Bot(publisher=publisher)) as bot:
-            self.drive(bot)
-
-    @classmethod
-    def drive(cls, bot):
         if settings.BOT_WAIT_FOR_BUTTON_PRESS:
-            bot.wait_till_switch_pressed()
+            self.wait_till_switch_pressed()
 
         if settings.BOT_IN_WANDER_MODE:
-            bot.wander_continuously()
+            self.wander_continuously()
 
         elif settings.BOT_IN_FOLLOW_MODE:
-            bot.follow_line_continuously()
+            self.follow_line_continuously()
 
         elif settings.BOT_IN_FOLLOW_AVOID_MODE:
-            bot.follow_line_and_avoid_obstacles_continuously()
+            self.follow_line_and_avoid_obstacles_continuously()
+
+        self.cleanup()
+
+
+class Service(service.Service):
+    name = 'bot'
+    resource = Bot
+    address = settings.LOCAL_BOT_PUBLISHER_ADDRESS
+    port = settings.BOT_PORT_ADDRESS
 
 
 @sentry

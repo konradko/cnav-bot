@@ -1,15 +1,15 @@
 from cnavbot import settings
 from cnavbot.utils import sentry, logger
-from cnavbot.bot import api, bluetooth, camera
+from cnavbot.services import bot, bluetooth, camera
 
 
 @sentry
 def run():
     logger.info("Starting...")
 
-    bluetooth.Service().run()
-    camera.Service().run()
-    api.Service().run()
+    bluetooth.Service().start()
+    camera.Service().start()
+    bot.Service().start()
 
     logger.info("Done")
 

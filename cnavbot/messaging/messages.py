@@ -133,13 +133,13 @@ class Base64(FileMixin, Message):
 class JSON(Message):
     serializer = serializers.JSON
 
-    def set_file_path(self, *args, **kwargs):
-        super(JSON, self).set_file_path(*args, **kwargs)
-        self.data = self.file_path
-
 
 class FilePath(FileMixin, JSON):
     serializer = serializers.FilePath
+
+    def set_file_path(self, *args, **kwargs):
+        super(FilePath, self).set_file_path(*args, **kwargs)
+        self.data = self.file_path
 
 
 MESSAGE_FOR_DATA_TYPE = {

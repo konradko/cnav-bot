@@ -7,14 +7,14 @@ from cnavbot.utils import logger
 class Driver(object):
 
     def __init__(self, *args, **kwargs):
-        self.driver = kwargs.get('driver', settings.BOT_DRIVER)
+        self.driver = kwargs.pop('driver', settings.BOT_DRIVER)
 
 
 class Motors(Driver):
 
     def __init__(self, speed=None, *args, **kwargs):
         super(Motors, self).__init__(*args, **kwargs)
-        self.speed = kwargs.get('speed', settings.BOT_DEFAULT_SPEED)
+        self.speed = kwargs.pop('speed', settings.BOT_DEFAULT_SPEED)
         self.validate_speed(self.speed)
         logger.info('Speed set to {}'.format(self.speed))
 
@@ -97,9 +97,11 @@ class Lights(Driver):
 
 class ObstacleSensor(Driver):
 
-    def __init__(self, max_distance=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(ObstacleSensor, self).__init__(*args, **kwargs)
-        self.max_distance = max_distance or settings.BOT_DEFAULT_MAX_DISTANCE
+        self.max_distance = kwargs.pop(
+            'max_distance', settings.BOT_DEFAULT_MAX_DISTANCE
+        )
         logger.info('Max distance set to {}'.format(self.max_distance))
 
     def left(self):
