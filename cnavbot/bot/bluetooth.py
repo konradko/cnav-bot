@@ -28,13 +28,15 @@ class Service(service.Base):
         try:
             logger.info("Connecting to bluetooth device...")
             socket = self.driver.hci_open_dev(0)
-            scanner = self.scanner.hci_le_set_scan_parameters(socket)
+            scanner = self.scanner
+            scanner.hci_le_set_scan_parameters(socket)
             scanner.hci_enable_le_scan(socket)
         except Exception as e:
             logger.exception(
                 u"Failed to connect to bluetooth device: {}".format(e)
             )
         else:
+            logger.info("Scanning with bluetooth")
             while True:
                 time.sleep(settings.BLUETOOTH_SCAN_INTERVAL)
                 self.publish_scan_results(publisher, socket, scanner)
@@ -48,7 +50,7 @@ class Service(service.Base):
     def publish_scan_results(cls, publisher, socket, scanner):
         scan_results = cls.scan(socket, scanner)
 
-        publisher.send(messages.JsonMessage(
+        publisher.send(messages.JSON(
             topic=settings.BLUETOOTH_PUBLISHER_TOPIC,
             data=scan_results,
         ))
