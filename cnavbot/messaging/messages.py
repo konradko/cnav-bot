@@ -14,6 +14,7 @@ class InvalidMessageError(Exception):
 
 class Message(object):
     serializer = serializers.Unicode
+    delimiter = "|"
 
     def __init__(self, *args, **kwargs):
         """
@@ -34,6 +35,13 @@ class Message(object):
         except Exception as e:
             raise InvalidMessageError(u"Invalid message: {}".format(e))
 
+    @classmethod
+    def validate_serialized_data(cls, data):
+        if cls.delimiter in data:
+            raise InvalidMessageError(
+                "Data contains delimiter: '{}'".format(cls.delimiter)
+            )
+
     def serialize(self):
         """Returns serialized message
 
@@ -41,12 +49,17 @@ class Message(object):
             str: serialized message
         """
         logger.debug("Serializing message '{}'".format(self.uuid))
-        return "{topic} {id} {timestamp} {data_type} {data}".format(
+
+        serialized_data = self.serializer.serialize(self.data)
+        self.validate_serialized_data(serialized_data)
+
+        return "{topic}{d}{uuid}{d}{timestamp}{d}{data_type}{d}{data}".format(
+            d=self.delimiter,
             topic=self.topic,
-            id=self.uuid,
+            uuid=self.uuid,
             timestamp=self.timestamp,
             data_type=self.serializer.data_type,
-            data=self.serializer.serialize(self.data)
+            data=serialized_data
         )
 
     def deserialize(self, raw_message):
@@ -161,7 +174,9 @@ def parse(raw_message):
     """
     logger.debug("Deserializing message...")
     try:
-        topic, uuid, timestamp, data_type, data = raw_message.split()
+        topic, uuid, timestamp, data_type, data = raw_message.split(
+            Message.delimiter
+        )
     except Exception as e:
         raise InvalidMessageError(u"Invalid message: {}".format(e))
     else:
