@@ -28,7 +28,7 @@ class Message(object):
         self.data = kwargs.get('data')
 
     def validate(self):
-        logger.info("Validating message '{}'".format(self.uuid))
+        logger.debug("Validating message '{}'".format(self.uuid))
         try:
             self.serialize()
         except Exception as e:
@@ -40,7 +40,7 @@ class Message(object):
         Returns:
             str: serialized message
         """
-        logger.info("Serializing message '{}'".format(self.uuid))
+        logger.debug("Serializing message '{}'".format(self.uuid))
         return "{topic} {id} {timestamp} {data_type} {data}".format(
             topic=self.topic,
             id=self.uuid,
@@ -58,7 +58,7 @@ class Message(object):
         Returns:
             Message: new instance of the message
         """
-        logger.info("Deserializing message...")
+        logger.debug("Deserializing message...")
         try:
             topic, uuid, timestamp, data_type, data = raw_message.split()
 
@@ -74,7 +74,7 @@ class Message(object):
         except Exception as e:
             raise InvalidMessageError(u"Invalid message: {}".format(e))
         else:
-            logger.info("Message '{}' deserialized".format(uuid))
+            logger.debug("Message '{}' deserialized".format(uuid))
             return self.__class__(
                 topic=topic,
                 uuid=uuid,
@@ -120,14 +120,14 @@ class Base64(FileMixin, Message):
     def save(self, file_name=None):
         self.set_file_path(file_name)
 
-        logger.info("Saving message '{}' data to '{}'".format(
+        logger.debug("Saving message '{}' data to '{}'".format(
             self.uuid, self.file_path
         ))
 
         with open(self.file_path) as destination:
             destination.write(bytearray(self.data))
 
-        logger.info("Message '{}' data saved".format(self.uuid))
+        logger.debug("Message '{}' data saved".format(self.uuid))
 
 
 class JSON(Message):
@@ -159,7 +159,7 @@ def parse(raw_message):
     Returns:
         Message: deserialized message
     """
-    logger.info("Deserializing message...")
+    logger.debug("Deserializing message...")
     try:
         topic, uuid, timestamp, data_type, data = raw_message.split()
     except Exception as e:
@@ -176,7 +176,7 @@ def parse(raw_message):
         message = MESSAGE_FOR_DATA_TYPE[data_type]
         data = message.serializer.deserialize(data)
 
-        logger.info("Message '{}' deserialized".format(uuid))
+        logger.debug("Message '{}' deserialized".format(uuid))
 
         return message(
             topic=topic,

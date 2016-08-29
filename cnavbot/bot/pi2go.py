@@ -29,7 +29,7 @@ class Motors(Driver):
 
     def forward(self, steps=None):
         """Sets both motors to go forward"""
-        logger.info('Going forward')
+        logger.debug('Going forward')
         self.driver.forward(self.speed)
 
         if steps:
@@ -37,7 +37,7 @@ class Motors(Driver):
 
     def reverse(self, steps=None):
         """Sets both motors to reverse"""
-        logger.info('Reversing')
+        logger.debug('Reversing')
         self.driver.reverse(self.speed)
 
         if steps:
@@ -45,7 +45,7 @@ class Motors(Driver):
 
     def left(self, steps=None):
         """Sets motors to turn opposite directions for left spin"""
-        logger.info('Spinning left')
+        logger.debug('Spinning left')
         self.driver.spinLeft(self.speed)
 
         if steps:
@@ -53,19 +53,19 @@ class Motors(Driver):
 
     def right(self, steps=None):
         """Sets motors to turn opposite directions for right spin"""
-        logger.info('Spinning right')
+        logger.debug('Spinning right')
         self.driver.spinRight(self.speed)
 
         if steps:
             self.keep_running(steps)
 
     def keep_running(self, steps):
-        logger.info('Keeping running for {} steps'.format(steps))
+        logger.debug('Keeping running for {} steps'.format(steps))
         time.sleep(0.1 * steps)
         self.stop()
 
     def stop(self):
-        logger.info('Stopping')
+        logger.debug('Stopping')
         self.driver.stop()
 
 
@@ -84,7 +84,7 @@ class Lights(Driver):
     def set_led_rbg(self, led_number, red, blue, green):
         """Spins right specified number of steps"""
         self.validate_led_number(led_number)
-        logger.info('Setting LED {} to red: {}, green: {}. blue: {}'.format(
+        logger.debug('Setting LED {} to red: {}, green: {}. blue: {}'.format(
             led_number, red, green, blue
         ))
         self.driver.setLED(led_number, red, green, blue)
@@ -105,24 +105,24 @@ class ObstacleSensor(Driver):
     def left(self):
         """Returns true if there is an obstacle to the left"""
         obstacle = self.driver.irLeft()
-        logger.info('Left obstacle: {}'.format(obstacle))
+        logger.debug('Left obstacle: {}'.format(obstacle))
         return obstacle
 
     def right(self):
         """Returns true if there is an obstacle to the right"""
         obstacle = self.driver.irRight()
-        logger.info('Right obstacle: {}'.format(obstacle))
+        logger.debug('Right obstacle: {}'.format(obstacle))
         return obstacle
 
     def front(self):
         """Returns true if there is an obstacle in front"""
         obstacle = self.driver.irCentre()
-        logger.info('Front obstacle: {}'.format(obstacle))
+        logger.debug('Front obstacle: {}'.format(obstacle))
         return obstacle
 
     def front_close(self):
         front_close = self.distance() <= self.max_distance
-        logger.info('Front obstacle close: {}'.format(front_close))
+        logger.debug('Front obstacle close: {}'.format(front_close))
         return front_close
 
     def distance(self):
@@ -131,13 +131,13 @@ class ObstacleSensor(Driver):
         in front of the bot
         """
         distance = self.driver.getDistance()
-        logger.info('Distance: {}'.format(distance))
+        logger.debug('Distance: {}'.format(distance))
         return distance
 
     def any(self):
         """Returns true if there is any obstacle"""
         any_obstacle = self.driver.irAll()
-        logger.info('Any obstacle: {}'.format(any_obstacle))
+        logger.debug('Any obstacle: {}'.format(any_obstacle))
         return any_obstacle
 
 
@@ -146,11 +146,11 @@ class LineSensor(Driver):
     def left(self):
         """Returns True if left line sensor detected dark line"""
         left = not self.driver.irLeftLine()
-        logger.info('Left line detected: {}'.format(left))
+        logger.debug('Left line detected: {}'.format(left))
         return left
 
     def right(self):
         """Returns True if right line sensor detected dark line"""
         right = not self.driver.irRightLine()
-        logger.info('Right line detected: {}'.format(right))
+        logger.debug('Right line detected: {}'.format(right))
         return right

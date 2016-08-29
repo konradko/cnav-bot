@@ -51,7 +51,7 @@ class Bot(object):
     def switch_pressed(self):
         switch_pressed = self.driver.getSwitch()
         if switch_pressed:
-            logger.info('Switch pressed')
+            logger.debug('Switch pressed')
         return switch_pressed
 
     def wait_till_switch_pressed(self):
@@ -93,7 +93,7 @@ class Bot(object):
     def avoid_left_obstacle(self):
         step_counter = 0
         while self.left_obstacle:
-            logger.info('Avoiding left obstacle')
+            logger.debug('Avoiding left obstacle')
             if step_counter >= self.full_spin_steps:
                 logger.warning('Failed to avoid left obstacle')
                 return
@@ -103,7 +103,7 @@ class Bot(object):
     def avoid_right_obstacle(self):
         step_counter = 0
         while self.right_obstacle:
-            logger.info('Avoiding right obstacle')
+            logger.debug('Avoiding right obstacle')
             if step_counter >= self.full_spin_steps:
                 logger.warning('Failed to avoid right obstacle')
                 return
@@ -112,7 +112,7 @@ class Bot(object):
 
     def avoid_front_obstacle(self):
         while self.front_obstacle:
-            logger.info('Avoiding front obstacle')
+            logger.debug('Avoiding front obstacle')
             if not self.right_obstacle:
                 self.motors.right(steps=self.steps)
             elif not self.left_obstacle:
@@ -123,18 +123,19 @@ class Bot(object):
 
     def avoid_obstacles(self):
         while self.any_obstacle:
-            logger.info('Avoiding obstacles')
+            logger.debug('Avoiding obstacles')
             self.avoid_front_obstacle()
             self.avoid_left_obstacle()
             self.avoid_right_obstacle()
 
     def wander(self):
-        logger.info('Wandering')
+        logger.debug('Wandering')
         self.avoid_obstacles()
         self.motors.forward()
         self.motors.keep_running(steps=self.steps)
 
     def wander_continuously(self):
+        logger.info('Wandering...')
         while True:
             self.wander()
 
@@ -159,6 +160,7 @@ class Bot(object):
                 self.motors.right(steps=2)
 
     def follow_line_continuously(self):
+        logger.info('Following line...')
         while True:
             self.follow_line()
 
@@ -167,6 +169,7 @@ class Bot(object):
         self.follow_line()
 
     def follow_line_and_avoid_obstacles_continuously(self):
+        logger.info('Following line and avoiding obstacles...')
         while True:
             self.follow_line_and_avoid_obstacles()
 

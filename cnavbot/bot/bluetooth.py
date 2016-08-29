@@ -41,7 +41,7 @@ class Service(service.Base):
 
     @staticmethod
     def scan(socket, scanner):
-        logger.info("Scanning with bluetooth...")
+        logger.debug("Scanning with bluetooth...")
         return scanner.parse_events(socket, loop_count=5)
 
     @classmethod

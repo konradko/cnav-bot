@@ -90,7 +90,7 @@ SENTRY_CLIENT = Client(SENTRY_DSN) if SENTRY_DSN else None
 logging.config.dictConfig({
     'version': 1,
     'formatters': {
-        'formatter': {
+        'default': {
             'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         }
     },
@@ -100,13 +100,19 @@ logging.config.dictConfig({
             'filename': BOT_LOG_PATH,
             'maxBytes': 10 * 1024 * 1024,
             'backupCount': 5,
-            'formatter': 'formatter',
+            'formatter': 'default',
+            'level': logging.INFO,
+        },
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'default',
             'level': logging.DEBUG,
-        }
+        },
     },
     'root': {
         'handlers': [
-            'rotating_file'
+            'rotating_file',
+            'console',
         ],
         'level': logging.DEBUG,
     },

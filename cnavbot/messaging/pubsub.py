@@ -24,6 +24,7 @@ class Publisher(Socket):
         self.socket = self.get_socket(zmq.PUB)
         self.port = port
         self.socket.bind(port)
+        logger.info("Started a publisher on port '{}'".format(self.port))
 
     def send(self, message):
         """Publish topic data
@@ -31,11 +32,11 @@ class Publisher(Socket):
         Args:
             message (Message): Message to send
         """
-        logger.info("Sending message '{}'' to topic '{}'".format(
+        logger.debug("Sending message '{}'' to topic '{}'".format(
             message.uuid, message.topic
         ))
         self.socket.send(message.serialize())
-        logger.info("Message '{}'' sent".format(message.uuid))
+        logger.debug("Message '{}'' sent".format(message.uuid))
 
 
 class Subscriber(Socket):
@@ -75,7 +76,7 @@ class Subscriber(Socket):
         Returns:
             Message: deserialized message
         """
-        logger.info("Getting a message...")
+        logger.debug("Getting a message...")
         message = self.socket.recv()
         return messages.parse(raw_message=message)
 
@@ -102,7 +103,7 @@ class MessageForwarder(Subscriber):
         Args:
             message (Message): Message to forward
         """
-        logger.info("Forwarding message '{}'".format(message.uuid))
+        logger.debug("Forwarding message '{}'".format(message.uuid))
         self.publisher.send(message)
 
 

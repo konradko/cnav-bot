@@ -40,7 +40,7 @@ class Service(service.Base):
     @staticmethod
     def take_picture(camera, file_path):
         camera.capture(file_path)
-        logger.info("Picture taken: '{}'".format(file_path))
+        logger.debug("Picture taken: '{}'".format(file_path))
 
     @classmethod
     def publish_pictures(cls, publisher, camera):
