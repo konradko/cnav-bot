@@ -12,13 +12,13 @@ class Camera(service.Resource):
     }
 
     def __init__(self, *args, **kwargs):
+        super(Camera, self).__init__(*args, **kwargs)
+
         self.interval = kwargs.pop('interval', settings.CAMERA_INTERVAL)
         self.resolution = kwargs.pop('resolution', settings.CAMERA_RESOLUTION)
         self.camera = kwargs.pop('camera', settings.CAMERA)
 
-    def run(self, publisher):
-        self.publisher = publisher
-
+    def run(self):
         with self.camera.PiCamera() as camera:
             camera.resolution = self.resolution
             while True:

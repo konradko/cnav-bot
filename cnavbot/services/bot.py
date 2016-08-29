@@ -17,6 +17,8 @@ class Bot(service.Resource):
     steps = 2
 
     def __init__(self, *args, **kwargs):
+        super(Bot, self).__init__(*args, **kwargs)
+
         self.driver = kwargs.get('driver', settings.BOT_DRIVER)
         self.driver.init()
 
@@ -29,6 +31,22 @@ class Bot(service.Resource):
 
         self.bluetooth = bluetooth.Service.get_subscriber()
         self.camera = camera.Service.get_subscriber()
+
+    def run(self):
+
+        if settings.BOT_WAIT_FOR_BUTTON_PRESS:
+            self.wait_till_switch_pressed()
+
+        if settings.BOT_IN_WANDER_MODE:
+            self.wander_continuously()
+
+        elif settings.BOT_IN_FOLLOW_MODE:
+            self.follow_line_continuously()
+
+        elif settings.BOT_IN_FOLLOW_AVOID_MODE:
+            self.follow_line_and_avoid_obstacles_continuously()
+
+        self.cleanup()
 
     def cleanup(self):
         logger.info('Cleaning up')
@@ -175,23 +193,6 @@ class Bot(service.Resource):
         logger.info('Following line and avoiding obstacles...')
         while True:
             self.follow_line_and_avoid_obstacles()
-
-    def run(self, publisher):
-        self.publisher = publisher
-
-        if settings.BOT_WAIT_FOR_BUTTON_PRESS:
-            self.wait_till_switch_pressed()
-
-        if settings.BOT_IN_WANDER_MODE:
-            self.wander_continuously()
-
-        elif settings.BOT_IN_FOLLOW_MODE:
-            self.follow_line_continuously()
-
-        elif settings.BOT_IN_FOLLOW_AVOID_MODE:
-            self.follow_line_and_avoid_obstacles_continuously()
-
-        self.cleanup()
 
 
 class Service(service.Service):

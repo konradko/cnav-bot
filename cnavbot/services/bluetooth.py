@@ -11,11 +11,12 @@ class Bluetooth(service.Resource):
     }
 
     def __init__(self, *args, **kwargs):
+        super(Bluetooth, self).__init__(*args, **kwargs)
+
         self.driver = kwargs.pop('driver', settings.BLUETOOTH_DRIVER)
         self.scanner = kwargs.pop('scanner', settings.IBEACON_SCANNER)
 
-    def run(self, publisher):
-        self.publisher = publisher
+    def run(self):
 
         self.connect()
         logger.info("Scanning with bluetooth")
@@ -25,7 +26,7 @@ class Bluetooth(service.Resource):
 
             self.publisher.send(messages.JSON(
                 topic=self.topics['scan'],
-                data=self.scan(self.socket, self.scanner),
+                data=self.scan(),
             ))
 
     def connect(self):

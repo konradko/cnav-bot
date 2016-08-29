@@ -7,6 +7,9 @@ from cnavbot.messaging import pubsub
 class Resource(object):
     topics = {}
 
+    def __init__(self, publisher, *args, **kwargs):
+        self.publisher = publisher
+
     def run(publisher):
         raise NotImplementedError()
 
@@ -55,9 +58,10 @@ class Service(object):
             return
 
         logger.info("Starting {} service...".format(self.name))
-        self.resource_instance = self.resource()
-        self.process = Process(
-            target=self.resource_instance.run, args=(self.get_publisher(), )
-        )
+        self.process = Process(target=self.run_resource)
         self.process.start()
         self.running = True
+
+    def run_resource(self):
+        self.resource_instance = self.resource(publisher=self.get_publisher())
+        self.resource_instance.run()
