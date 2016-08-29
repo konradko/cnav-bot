@@ -23,7 +23,6 @@ class Service(object):
     port = None
 
     # set after start
-    resource_instance = None
     process = None
 
     running = False
@@ -63,5 +62,5 @@ class Service(object):
         self.running = True
 
     def run_resource(self):
-        self.resource_instance = self.resource(publisher=self.get_publisher())
-        self.resource_instance.run()
+        resource_instance = self.resource(publisher=self.get_publisher())
+        resource_instance.run()
