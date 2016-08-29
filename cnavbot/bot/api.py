@@ -186,7 +186,7 @@ class Service(service.Base):
 
     def run(self):
         publisher = pubsub.Publisher(
-            port=settings.BLUETOOTH_PUBLISHER_PORT
+            port=settings.BOT_PUBLISHER_PORT
         )
 
         with cleanup(Bot(publisher=publisher)) as bot:
