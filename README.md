@@ -79,22 +79,15 @@ The metrics dashboard will be available at http://your-device-ip/consoles/node.h
 
 ## SSH into the container using local network 
 
-1. Set the `CLIENT_PUBKEY` environment variable to your public key in resin.io dashboard, on OSX you can copy it with:
+1. In resin.io dashboard set `CLIENT_PUBKEYS` environment variable to '\n' separated list of public keys, on OSX you can copy your public key with:
     ```
     $ cat ~/.ssh/id_rsa.pub | pbcopy
     ```
+    | Environment variable | Example value | Description
+    | ------------- | ------------- | ------------- |
+    | CLIENT_PUBKEYS | ssh-rsa pubkeyone\nssh-rsa pubkeytwo | '\n' separated list of public keys that are allowed access |
 
-| Environment variable | Example value | Description
-| ------------- | ------------- | ------------- |
-| CLIENT_PUBKEY | ssh-rsa ASDF12312... | Your public key |
-
-
-2. Deploy the application:
+2. SSH into a container using local address (you can get it from resin.io dashboard or using [resin-cli](https://github.com/resin-io/resin-cli)), e.g.:
     ```
-    $ make deploy
-    ```
-
-3. SSH into a container using local address (you can get it from resin.io dashboard or using [resin-cli](https://github.com/resin-io/resin-cli)), e.g.:
-    ```
-    $ ./ssh.sh 192.168.1.15
+    $ ssh root@192.168.1.15
     ```
