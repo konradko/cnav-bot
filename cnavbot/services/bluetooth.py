@@ -2,7 +2,7 @@ import time
 
 from cnavbot import settings
 from cnavbot.utils import logger, sentry
-from cnavbot.messaging import messages, service
+from cnavbot.messaging import messages, service, pubsub
 
 
 class Bluetooth(service.Resource):
@@ -61,6 +61,8 @@ class Service(service.Service):
     resource = Bluetooth
     address = settings.LOCAL_BLUETOOTH_PUBLISHER_ADDRESS
     port = settings.BLUETOOTH_PORT_ADDRESS
+    publisher = pubsub.LastMessagePublisher
+    subscriber = pubsub.LastMessageSubscriber
 
 
 @sentry

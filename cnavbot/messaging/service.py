@@ -15,6 +15,8 @@ class Resource(object):
 
 
 class Service(object):
+    publisher = pubsub.Publisher
+    subscriber = pubsub.Subscriber
 
     # required
     name = None
@@ -43,13 +45,14 @@ class Service(object):
 
     @classmethod
     def get_subscriber(cls, publisher_address=None):
-        return pubsub.Subscriber(
+        return cls.subscriber(
             publishers=(publisher_address or cls.address, ),
             topics=cls.resource.topics.values(),
         )
 
-    def get_publisher(self):
-        return pubsub.Publisher(port=self.port)
+    @classmethod
+    def get_publisher(cls):
+        return cls.publisher(port=cls.port)
 
     def start(self):
         if self.running:

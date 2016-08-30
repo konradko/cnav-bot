@@ -7,9 +7,9 @@ from cnavbot.services import bot, bluetooth, camera
 def run():
     logger.info("Starting...")
 
+    bot.Service().start()
     bluetooth.Service().start()
     camera.Service().start()
-    bot.Service().start()
 
     logger.info("Done")
 

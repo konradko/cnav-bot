@@ -4,7 +4,7 @@ import time
 
 from cnavbot import settings
 from cnavbot.utils import logger, sentry
-from cnavbot.messaging import messages, service
+from cnavbot.messaging import messages, service, pubsub
 
 
 class Camera(service.Resource):
@@ -37,7 +37,7 @@ class Camera(service.Resource):
                     message.data = destination
                     capture_args = (destination, )
 
-                self.take_picture(camera, *capture_args)
+                self.take_picture(camera, capture_args)
 
                 if self.capture_to_stream:
                     message.data = destination.read()
@@ -59,6 +59,8 @@ class Service(service.Service):
     resource = Camera
     address = settings.LOCAL_CAMERA_PUBLISHER_ADDRESS
     port = settings.CAMERA_PORT_ADDRESS
+    publisher = pubsub.LastMessagePublisher
+    subscriber = pubsub.LastMessageSubscriber
 
 
 @sentry
