@@ -1,4 +1,5 @@
 import datetime
+import io
 import time
 
 from cnavbot import settings
@@ -8,8 +9,9 @@ from cnavbot.messaging import messages, service
 
 class Camera(service.Resource):
     topics = {
-        'take_picture': settings.CAMERA_TOPIC,
+        'pictures': settings.CAMERA_TOPIC,
     }
+    capture_to_stream = True
 
     def __init__(self, *args, **kwargs):
         super(Camera, self).__init__(*args, **kwargs)
@@ -23,16 +25,29 @@ class Camera(service.Resource):
             camera.resolution = self.resolution
             while True:
                 time.sleep(self.interval)
-                self.take_picture(camera)
 
-    def take_picture(self, camera):
-        message = messages.FilePath(topic=self.topics['take_picture'])
-        message.set_file_path(file_name=self.get_file_name())
+                if self.capture_to_stream:
+                    message = messages.Base64()
+                    destination = io.BytesIO()
+                    capture_args = (destination, 'jpeg')
+                else:
+                    message = messages.FilePath()
+                    message.set_file_path(file_name=self.get_file_name())
+                    destination = message.file_path
+                    message.data = destination
+                    capture_args = (destination, )
 
-        camera.capture(message.file_path)
-        logger.debug("Picture taken: '{}'".format(message.file_path))
+                self.take_picture(camera, *capture_args)
 
-        self.publisher.send(message)
+                if self.capture_to_stream:
+                    message.data = destination.read()
+
+                message.topic = self.topics['pictures']
+                self.publisher.send(message)
+
+    def take_picture(self, camera, capture_args):
+        logger.debug("Taking picture")
+        return camera.capture(*capture_args)
 
     @staticmethod
     def get_file_name():
