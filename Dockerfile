@@ -1,6 +1,8 @@
 # base resin image for python
 FROM resin/raspberrypi3-python
 
+ENV HOME=/root
+
 # Install papertrail client
 RUN wget https://github.com/papertrail/remote_syslog2/releases/download/v0.18/remote-syslog2_0.18_armhf.deb \
     && dpkg -i remote-syslog2_0.18_armhf.deb \
