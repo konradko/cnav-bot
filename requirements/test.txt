@@ -5,6 +5,7 @@
 #    pip-compile --output-file requirements/test.txt requirements/test.in
 #
 -e git+https://github.com/resin-io/resin-sdk-python.git@master#egg=resin
+-e git+https://git@github.com/konradko/zmq-services.git@master#egg=zmqservices
 colorama==0.3.7           # via radon
 configparser==3.5.0       # via flake8
 contextlib2==0.5.4

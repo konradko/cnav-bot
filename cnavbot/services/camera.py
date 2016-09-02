@@ -2,12 +2,13 @@ import datetime
 import io
 import time
 
+from zmqservices import messages, services, pubsub
+
 from cnavbot import settings
 from cnavbot.utils import logger, sentry
-from cnavbot.messaging import messages, service, pubsub
 
 
-class Camera(service.Resource):
+class Camera(services.PublisherResource):
     topics = {
         'pictures': settings.CAMERA_TOPIC,
     }
@@ -54,7 +55,7 @@ class Camera(service.Resource):
         return "{}.jpg".format(datetime.datetime.utcnow().isoformat())
 
 
-class Service(service.Service):
+class Service(services.PublisherService):
     name = 'camera'
     resource = Camera
     address = settings.LOCAL_CAMERA_PUBLISHER_ADDRESS

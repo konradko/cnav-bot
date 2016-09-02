@@ -1,11 +1,12 @@
 import time
 
+from zmqservices import messages, services, pubsub
+
 from cnavbot import settings
 from cnavbot.utils import logger, sentry
-from cnavbot.messaging import messages, service, pubsub
 
 
-class Bluetooth(service.Resource):
+class Bluetooth(services.PublisherResource):
     topics = {
         'scan': settings.BLUETOOTH_TOPIC,
     }
@@ -56,7 +57,7 @@ class Bluetooth(service.Resource):
         }
 
 
-class Service(service.Service):
+class Service(services.PublisherService):
     name = 'bluetooth'
     resource = Bluetooth
     address = settings.LOCAL_BLUETOOTH_PUBLISHER_ADDRESS

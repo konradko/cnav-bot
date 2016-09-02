@@ -1,12 +1,13 @@
 import time
 
+from zmqservices import services
+
 from cnavbot import settings
 from cnavbot.services import bluetooth, camera, pi2go
 from cnavbot.utils import logger, sentry
-from cnavbot.messaging import service
 
 
-class Bot(service.Resource):
+class Bot(services.PublisherResource):
     topics = {
         'drive': settings.BOT_TOPIC,
     }
@@ -195,7 +196,7 @@ class Bot(service.Resource):
             self.follow_line_and_avoid_obstacles()
 
 
-class Service(service.Service):
+class Service(services.PublisherService):
     name = 'bot'
     resource = Bot
     address = settings.LOCAL_BOT_PUBLISHER_ADDRESS

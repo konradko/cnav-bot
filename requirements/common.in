@@ -1,2 +1,3 @@
+-e git+https://git@github.com/konradko/zmq-services.git@master#egg=zmqservices
 raven
 pyzmq
