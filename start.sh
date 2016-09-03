@@ -18,8 +18,4 @@ bash /usr/src/app/config/bluetooth.sh
 echo "Starting Prometheus"
 bash /usr/src/app/config/prometheus.sh
 
-echo "Configuring Pi Zero OTG"
-bash /usr/src/app/config/pizero.sh
-
-
 python cnavbot/main.py
