@@ -11,7 +11,7 @@ COPY config/papertrail/log_files.yml /etc/
 COPY config/papertrail/papertrail.service /etc/systemd/system/
 
 # Install required packages and remove the apt list to reduce the size of the image
-RUN apt-get update && apt-get install -yq --no-install-recommends \
+RUN apt-get update && apt-get install -yq \
     openssh-server \
     nmap \
     bluetooth \
@@ -22,14 +22,9 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
     libopencv-dev \
     python-opencv \
     build-essential \
+    avahi-daemon avahi-autoipd avahi-dnsconfd \
     libc6-dev && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Pi Zero OTG setup
-COPY config/pizero/90-pizero-otg.rules /etc/udev/rules.d/
-COPY config/pizero/pizero-dhcpcd.conf /tmp/
-RUN cat /tmp/pizero-dhcpcd.conf >> /etc/dhcpcd.conf  && rm /tmp/pizero-dhcpcd.conf
-# RUN route add -net 169.254.0.0 netmask 255.255.0.0 dev eth0 metric 99 route add default dev eth0 metric 99
 
 # Prometheus
 ENV PROMETHEUS_VERSION 0.20.0
