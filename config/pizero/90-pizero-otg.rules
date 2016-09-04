@@ -1,0 +1,3 @@
+SUBSYSTEM=="net", ATTR{address}=="00:22:82:ff:ff:01", NAME="pizero1"
+SUBSYSTEM=="net", ATTR{address}=="00:22:82:ff:ff:02", NAME="pizero2"
+SUBSYSTEM=="net", ATTR{address}=="00:22:82:ff:ff:03", NAME="pizero3"
