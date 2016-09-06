@@ -22,7 +22,6 @@ RUN apt-get update && apt-get install -yq \
     libopencv-dev \
     python-opencv \
     build-essential \
-    avahi-daemon avahi-autoipd avahi-dnsconfd \
     libc6-dev && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
