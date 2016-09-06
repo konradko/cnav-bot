@@ -11,7 +11,7 @@ COPY config/papertrail/log_files.yml /etc/
 COPY config/papertrail/papertrail.service /etc/systemd/system/
 
 # Install required packages and remove the apt list to reduce the size of the image
-RUN apt-get update && apt-get install -yq \
+RUN apt-get update && apt-get install -yq --no-install-recommends \
     openssh-server \
     nmap \
     bluetooth \
