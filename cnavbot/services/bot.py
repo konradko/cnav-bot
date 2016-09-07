@@ -1,6 +1,10 @@
 import time
 
 from zmqservices import services
+from cnavconstants.publishers import (
+    LOCAL_BOT_ADDRESS, BOT_SERVICE_PORT
+)
+import cnavconstants.topics
 
 from cnavbot import settings
 from cnavbot.services import bluetooth, camera, pi2go
@@ -9,7 +13,7 @@ from cnavbot.utils import logger, sentry
 
 class Bot(services.PublisherResource):
     topics = {
-        'drive': settings.BOT_TOPIC,
+        'drive': cnavconstants.topics.BOT,
     }
 
     # Number of steps required for 360 spin
@@ -199,8 +203,8 @@ class Bot(services.PublisherResource):
 class Service(services.PublisherService):
     name = 'bot'
     resource = Bot
-    address = settings.LOCAL_BOT_PUBLISHER_ADDRESS
-    port = settings.BOT_PORT_ADDRESS
+    address = LOCAL_BOT_ADDRESS
+    port = BOT_SERVICE_PORT
 
 
 @sentry

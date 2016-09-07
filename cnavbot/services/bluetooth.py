@@ -1,6 +1,10 @@
 import time
 
 from zmqservices import messages, services, pubsub
+from cnavconstants.publishers import (
+    LOCAL_BLUETOOTH_ADDRESS, BLUETOOTH_SERVICE_PORT
+)
+import cnavconstants.topics
 
 from cnavbot import settings
 from cnavbot.utils import logger, sentry
@@ -8,7 +12,7 @@ from cnavbot.utils import logger, sentry
 
 class Bluetooth(services.PublisherResource):
     topics = {
-        'scan': settings.BLUETOOTH_TOPIC,
+        'scan': cnavconstants.topics.BLUETOOTH,
     }
 
     def __init__(self, *args, **kwargs):
@@ -60,8 +64,8 @@ class Bluetooth(services.PublisherResource):
 class Service(services.PublisherService):
     name = 'bluetooth'
     resource = Bluetooth
-    address = settings.LOCAL_BLUETOOTH_PUBLISHER_ADDRESS
-    port = settings.BLUETOOTH_PORT_ADDRESS
+    address = LOCAL_BLUETOOTH_ADDRESS
+    port = BLUETOOTH_SERVICE_PORT
     publisher = pubsub.LastMessagePublisher
     subscriber = pubsub.LastMessageSubscriber
 

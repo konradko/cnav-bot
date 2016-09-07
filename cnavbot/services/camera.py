@@ -3,6 +3,10 @@ import io
 import time
 
 from zmqservices import messages, services, pubsub
+from cnavconstants.publishers import (
+    LOCAL_CAMERA_ADDRESS, CAMERA_SERVICE_PORT
+)
+import cnavconstants.topics
 
 from cnavbot import settings
 from cnavbot.utils import logger, sentry
@@ -10,7 +14,7 @@ from cnavbot.utils import logger, sentry
 
 class Camera(services.PublisherResource):
     topics = {
-        'pictures': settings.CAMERA_TOPIC,
+        'pictures': cnavconstants.topics.CAMERA,
     }
     capture_to_stream = True
 
@@ -58,8 +62,8 @@ class Camera(services.PublisherResource):
 class Service(services.PublisherService):
     name = 'camera'
     resource = Camera
-    address = settings.LOCAL_CAMERA_PUBLISHER_ADDRESS
-    port = settings.CAMERA_PORT_ADDRESS
+    address = LOCAL_CAMERA_ADDRESS
+    port = CAMERA_SERVICE_PORT
     publisher = pubsub.LastMessagePublisher
     subscriber = pubsub.LastMessageSubscriber
 

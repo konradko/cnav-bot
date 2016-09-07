@@ -13,7 +13,7 @@ class TestBot(TestCase):
             with mock.patch('cnavbot.settings.IBEACON_SCANNER'):
                 with mock.patch('cnavbot.settings.CAMERA'):
                     with mock.patch('cnavbot.settings.BOT_DRIVER'):
-                        self.bot = bot.Bot(publisher=mock.Mock())
+                        self.bot = bot.Bot(publisher=mock.Mock(port=1))
                         self.bot.motors.keep_running = mock.Mock()
 
     def test__init__(self):

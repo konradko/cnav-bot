@@ -117,35 +117,3 @@ logging.config.dictConfig({
         'level': logging.DEBUG,
     },
 })
-
-# Messaging ###################################################################
-
-LOCAL_PUBLISHER_ADDRESS = 'tcp://localhost:{port}'
-PUBLISHER_PORT_ADDRESS = 'tcp://*:{port}'
-
-BLUETOOTH_TOPIC = 'bluetooth.scan_results'
-BLUETOOTH_PORT = int(os.getenv('BLUETOOTH_PORT', 48630))
-LOCAL_BLUETOOTH_PUBLISHER_ADDRESS = LOCAL_PUBLISHER_ADDRESS.format(
-    port=BLUETOOTH_PORT
-)
-BLUETOOTH_PORT_ADDRESS = PUBLISHER_PORT_ADDRESS.format(
-    port=BLUETOOTH_PORT
-)
-
-CAMERA_TOPIC = 'camera.pictures'
-CAMERA_PORT = int(os.getenv('CAMERA_PORT', 48631))
-LOCAL_CAMERA_PUBLISHER_ADDRESS = LOCAL_PUBLISHER_ADDRESS.format(
-    port=CAMERA_PORT
-)
-CAMERA_PORT_ADDRESS = PUBLISHER_PORT_ADDRESS.format(
-    port=CAMERA_PORT
-)
-
-BOT_TOPIC = 'bot.driving'
-BOT_PORT = int(os.getenv('BOT_PORT', 48632))
-LOCAL_BOT_PUBLISHER_ADDRESS = LOCAL_PUBLISHER_ADDRESS.format(
-    port=BOT_PORT
-)
-BOT_PORT_ADDRESS = PUBLISHER_PORT_ADDRESS.format(
-    port=BOT_PORT
-)
