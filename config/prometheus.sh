@@ -1,4 +1,5 @@
 #!/bin/bash
+echo "Starting Prometheus"
 
 # Replace all ENVARS in all config files
 find /etc/config -type f -exec sed -i -e s/SMTP_ACCOUNT/${SMTP_ACCOUNT}/g \

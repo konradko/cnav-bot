@@ -1,4 +1,5 @@
 #!/bin/bash
+echo "Starting OpenSSH"
 
 # OpenSSH
 mkdir -p ~/.ssh

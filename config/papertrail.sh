@@ -1,4 +1,5 @@
 #!/bin/bash
+echo "Starting Papertrail"
 
 mkdir -p /data/log/
 
