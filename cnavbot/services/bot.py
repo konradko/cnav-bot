@@ -1,10 +1,9 @@
 import time
 
-from zmqservices import services
-from cnavconstants.publishers import (
-    LOCAL_BOT_ADDRESS, BOT_SERVICE_PORT
-)
+from zmqservices import services, pubsub, clientserver
 import cnavconstants.topics
+import cnavconstants.publishers
+import cnavconstants.servers
 
 from cnavbot import settings
 from cnavbot.services import bluetooth, camera, pi2go
@@ -53,9 +52,79 @@ class Bot(services.PublisherResource):
 
             self.cleanup()
 
+    @staticmethod
+    def get_sense_service_address(port):
+        return 'tcp://{}:{}'.format(settings.CNAV_SENSE_ADDRESS, port)
+
+    def setup_sense_services(self):
+        inertial_service = self.get_sense_service_address(
+            port=cnavconstants.publishers.INERTIAL_SENSORS_PORT
+        )
+        self.compass_subscriber = pubsub.LastMessageSubscriber(
+            publishers=(inertial_service, ),
+            topics=(cnavconstants.topics.COMPASS, ),
+        )
+        self.orientation_subscriber = pubsub.LastMessageSubscriber(
+            publishers=(inertial_service, ),
+            topics=(cnavconstants.topics.ORIENTATION, ),
+        )
+
+        environmental_service = self.get_sense_service_address(
+            port=cnavconstants.publishers.ENVIRONMENTAL_SENSORS_PORT
+        )
+        self.temperature_subscriber = pubsub.LastMessageSubscriber(
+            publishers=(environmental_service, ),
+            topics=(cnavconstants.topics.TEMPERATURE, ),
+        )
+        self.pressure_subscriber = pubsub.LastMessageSubscriber(
+            publishers=(environmental_service, ),
+            topics=(cnavconstants.topics.PRESSURE, ),
+        )
+        self.humidity_subscriber = pubsub.LastMessageSubscriber(
+            publishers=(environmental_service, ),
+            topics=(cnavconstants.topics.HUMIDITY, ),
+        )
+
+        self.joystick_subscriber = pubsub.Subscriber(
+            publishers=(self.get_sense_service_address(
+                port=cnavconstants.publishers.JOYSTICK_PORT
+            ), ),
+            topics=(cnavconstants.topics.JOYSTICK, ),
+        )
+
+        self.led_matrix_client = clientserver.Client(
+            servers=(self.get_sense_service_address(
+                port=cnavconstants.servers.LED_MATRIX_PORT
+            ), ),
+        )
+
     def cleanup(self):
         logger.info('Cleaning up')
         self.driver.cleanup()
+
+    @property
+    def compass(self):
+        return self.compass_subscriber.receive().data
+
+    @property
+    def orientation(self):
+        return self.orientation_subscriber.receive().data
+
+    @property
+    def temperature(self):
+        return self.temperature_subscriber.receive().data
+
+    @property
+    def pressure(self):
+        return self.pressure_subscriber.receive().data
+
+    @property
+    def humidity(self):
+        return self.humidity_subscriber.receive().data
+
+    @property
+    def joystick(self):
+        return self.joystick_subscriber.receive().data
 
     @property
     def bluetooth_scan_results(self):
@@ -203,8 +272,8 @@ class Bot(services.PublisherResource):
 class Service(services.PublisherService):
     name = 'bot'
     resource = Bot
-    address = LOCAL_BOT_ADDRESS
-    port = BOT_SERVICE_PORT
+    address = cnavconstants.publishers.LOCAL_BOT_ADDRESS
+    port = cnavconstants.publishers.BOT_SERVICE_PORT
 
 
 def start():
