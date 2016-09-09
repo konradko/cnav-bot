@@ -22,17 +22,17 @@ class Bluetooth(services.PublisherResource):
         self.scanner = kwargs.pop('scanner', settings.IBEACON_SCANNER)
 
     def run(self):
+        with sentry():
+            self.connect()
+            logger.info("Scanning with bluetooth")
 
-        self.connect()
-        logger.info("Scanning with bluetooth")
+            while True:
+                time.sleep(settings.BLUETOOTH_SCAN_INTERVAL)
 
-        while True:
-            time.sleep(settings.BLUETOOTH_SCAN_INTERVAL)
-
-            self.publisher.send(messages.JSON(
-                topic=self.topics['scan'],
-                data=self.scan(),
-            ))
+                self.publisher.send(messages.JSON(
+                    topic=self.topics['scan'],
+                    data=self.scan(),
+                ))
 
     def connect(self):
         logger.info("Connecting to bluetooth device...")
@@ -70,9 +70,8 @@ class Service(services.PublisherService):
     subscriber = pubsub.LastMessageSubscriber
 
 
-@sentry
 def start():
-    return Service()
+    return Service().start()
 
 
 if __name__ == '__main__':

@@ -26,29 +26,30 @@ class Camera(services.PublisherResource):
         self.camera = kwargs.pop('camera', settings.CAMERA)
 
     def run(self):
-        with self.camera.PiCamera() as camera:
-            camera.resolution = self.resolution
-            while True:
-                time.sleep(self.interval)
+        with sentry():
+            with self.camera.PiCamera() as camera:
+                camera.resolution = self.resolution
+                while True:
+                    time.sleep(self.interval)
 
-                if self.capture_to_stream:
-                    message = messages.Base64()
-                    destination = io.BytesIO()
-                    capture_args = (destination, 'jpeg')
-                else:
-                    message = messages.FilePath()
-                    message.set_file_path(file_name=self.get_file_name())
-                    destination = message.file_path
-                    message.data = destination
-                    capture_args = (destination, )
+                    if self.capture_to_stream:
+                        message = messages.Base64()
+                        destination = io.BytesIO()
+                        capture_args = (destination, 'jpeg')
+                    else:
+                        message = messages.FilePath()
+                        message.set_file_path(file_name=self.get_file_name())
+                        destination = message.file_path
+                        message.data = destination
+                        capture_args = (destination, )
 
-                self.take_picture(camera, capture_args)
+                    self.take_picture(camera, capture_args)
 
-                if self.capture_to_stream:
-                    message.data = destination.read()
+                    if self.capture_to_stream:
+                        message.data = destination.read()
 
-                message.topic = self.topics['pictures']
-                self.publisher.send(message)
+                    message.topic = self.topics['pictures']
+                    self.publisher.send(message)
 
     def take_picture(self, camera, capture_args):
         logger.debug("Taking picture")
@@ -68,9 +69,8 @@ class Service(services.PublisherService):
     subscriber = pubsub.LastMessageSubscriber
 
 
-@sentry
 def start():
-    return Service()
+    return Service().start()
 
 
 if __name__ == '__main__':

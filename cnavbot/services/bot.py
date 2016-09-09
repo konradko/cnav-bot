@@ -38,20 +38,20 @@ class Bot(services.PublisherResource):
         self.camera = camera.Service.get_subscriber()
 
     def run(self):
+        with sentry():
+            if settings.BOT_WAIT_FOR_BUTTON_PRESS:
+                self.wait_till_switch_pressed()
 
-        if settings.BOT_WAIT_FOR_BUTTON_PRESS:
-            self.wait_till_switch_pressed()
+            if settings.BOT_IN_WANDER_MODE:
+                self.wander_continuously()
 
-        if settings.BOT_IN_WANDER_MODE:
-            self.wander_continuously()
+            elif settings.BOT_IN_FOLLOW_MODE:
+                self.follow_line_continuously()
 
-        elif settings.BOT_IN_FOLLOW_MODE:
-            self.follow_line_continuously()
+            elif settings.BOT_IN_FOLLOW_AVOID_MODE:
+                self.follow_line_and_avoid_obstacles_continuously()
 
-        elif settings.BOT_IN_FOLLOW_AVOID_MODE:
-            self.follow_line_and_avoid_obstacles_continuously()
-
-        self.cleanup()
+            self.cleanup()
 
     def cleanup(self):
         logger.info('Cleaning up')
@@ -207,9 +207,8 @@ class Service(services.PublisherService):
     port = BOT_SERVICE_PORT
 
 
-@sentry
 def start():
-    return Service()
+    return Service().start()
 
 
 if __name__ == '__main__':
