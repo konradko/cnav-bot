@@ -3,7 +3,6 @@ from cnavbot.utils import sentry, logger
 from cnavbot.services import bot, bluetooth, camera
 
 
-@sentry
 def run():
     logger.info("Starting...")
 
