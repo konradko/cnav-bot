@@ -7,7 +7,7 @@
 -e git+https://git@github.com/konradko/cnav-constants.git@v0.0.1#egg=cnavconstants
 -e git+https://git@github.com/konradko/iBeacon-scanner.git@master#egg=ibeaconscanner
 -e git+https://git@github.com/konradko/pi2go.git@master#egg=pi2go
--e git+https://git@github.com/konradko/zmq-services.git@v0.0.4#egg=zmqservices
+-e git+https://git@github.com/konradko/zmq-services.git@v0.0.6#egg=zmqservices
 cffi==1.7.0               # via smbus-cffi
 contextlib2==0.5.4
 picamera==1.12
