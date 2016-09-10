@@ -5,7 +5,7 @@
 #    pip-compile --output-file requirements/common.txt requirements/common.in
 #
 -e git+https://git@github.com/konradko/cnav-constants.git@v0.0.1#egg=cnavconstants
--e git+https://git@github.com/konradko/zmq-services.git@v0.0.10#egg=zmqservices
+-e git+https://git@github.com/konradko/zmq-services.git@v0.0.11#egg=zmqservices
 contextlib2==0.5.4        # via raven
 pyzmq==15.4.0
 raven==5.25.0

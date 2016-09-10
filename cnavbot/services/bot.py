@@ -50,6 +50,9 @@ class Bot(services.PublisherResource):
             elif settings.BOT_IN_FOLLOW_AVOID_MODE:
                 self.follow_line_and_avoid_obstacles_continuously()
 
+            elif settings.BOT_MODE_DIRECTION_MODE:
+                self.drive_in_direction_continuously()
+
             self.cleanup()
 
     @staticmethod
@@ -109,6 +112,10 @@ class Bot(services.PublisherResource):
     @property
     def orientation(self):
         return self.orientation_subscriber.receive().data
+
+    @property
+    def direction(self):
+        return self._direction
 
     @property
     def temperature(self):
@@ -226,8 +233,7 @@ class Bot(services.PublisherResource):
     def wander(self):
         logger.debug('Wandering')
         self.avoid_obstacles()
-        self.motors.forward()
-        self.motors.keep_running(steps=self.steps)
+        self.motors.forward(steps=self.steps)
 
     def wander_continuously(self):
         logger.info('Wandering...')
@@ -267,6 +273,36 @@ class Bot(services.PublisherResource):
         logger.info('Following line and avoiding obstacles...')
         while True:
             self.follow_line_and_avoid_obstacles()
+
+    def find_free_space(self):
+        logger.info('Finding free space...')
+        while not (self.distance >= settings.BOT_DEFAULT_MAX_DISTANCE):
+            self.wander()
+
+        self.motors.forward(steps=10)
+        logger.info('Free space found')
+
+    def drive_in_direction(
+            self,
+            direction=settings.BOT_DEFAULT_DIRECTION,
+            tolerance=settings.BOT_DIRECTION_TOLERANCE):
+
+        self.find_free_space()
+
+        direction_lower = direction - tolerance
+        direction_upper = direction + tolerance
+
+        while direction_lower <= self.direction <= direction_upper:
+            self.motors.left(steps=1)
+
+        self.wander()
+
+    def drive_in_direction_continuously(self):
+        logger.info('Driving in direction: {}...'.format(
+            settings.BOT_DEFAULT_DIRECTION
+        ))
+        while True:
+            self.drive_in_direction()
 
 
 class Service(services.PublisherService):
