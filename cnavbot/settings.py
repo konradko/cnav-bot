@@ -84,8 +84,7 @@ BOT_DEFAULT_MAX_DISTANCE = int(os.getenv('BOT_DEFAULT_MAX_DISTANCE', 10))
 # Logging #####################################################################
 
 BOT_LOG_PATH = os.environ.get('BOT_LOG_PATH', '/tmp/cnavbot.log')
-SENTRY_DSN = os.environ.get('SENTRY_DSN', '')
-SENTRY_CLIENT = Client(SENTRY_DSN) if SENTRY_DSN else None
+SENTRY_DSN = os.environ.get('SENTRY_DSN')
 
 logging.config.dictConfig({
     'version': 1,
