@@ -1,9 +1,6 @@
 import logging.config
 import os
 
-from raven import Client
-
-
 PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
 
 _, HOSTNAME, _, _, MACHINE = os.uname()
