@@ -1,4 +1,4 @@
--e git+https://git@github.com/konradko/zmq-services.git@v0.0.6#egg=zmqservices
+-e git+https://git@github.com/konradko/zmq-services.git@v0.0.7#egg=zmqservices
 -e git+https://git@github.com/konradko/cnav-constants.git@v0.0.1#egg=cnavconstants
 raven
 pyzmq
