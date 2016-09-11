@@ -21,7 +21,14 @@ class Bot(services.PublisherResource):
     full_spin_steps = 44
     # Default number of steps
     steps = 2
-    direction = None
+
+    # Used to set bot direction based on joystick input
+    directions = {
+        'up': 0,
+        'down': 180,
+        'left': -45,
+        'right': 45,
+    }
 
     def __init__(self, *args, **kwargs):
         super(Bot, self).__init__(*args, **kwargs)
@@ -39,15 +46,19 @@ class Bot(services.PublisherResource):
         self.bluetooth = bluetooth.Service.get_subscriber()
         self.camera = camera.Service.get_subscriber()
 
+        self.setup_sense_services()
+
     def run(self):
         with sentry():
             if settings.BOT_WAIT_FOR_BUTTON_PRESS:
                 self.wait_till_switch_pressed()
 
-            if settings.BOT_WAIT_FOR_JOYSTICK_DIRECTION:
-                self.wait_for_joystick_direction()
+            if settings.BOT_MODE_DIRECTION_MODE:
+                self.drive_in_direction_continuously(
+                    direction=self.wait_for_joystick_direction()
+                )
 
-            if settings.BOT_IN_WANDER_MODE:
+            elif settings.BOT_IN_WANDER_MODE:
                 self.wander_continuously()
 
             elif settings.BOT_IN_FOLLOW_MODE:
@@ -55,9 +66,6 @@ class Bot(services.PublisherResource):
 
             elif settings.BOT_IN_FOLLOW_AVOID_MODE:
                 self.follow_line_and_avoid_obstacles_continuously()
-
-            elif settings.BOT_MODE_DIRECTION_MODE:
-                self.drive_in_direction_continuously()
 
             self.cleanup()
 
@@ -165,8 +173,7 @@ class Bot(services.PublisherResource):
             ))
             joystick_direction = self.joystick_direction
             if joystick_direction:
-                self.direction = joystick_direction
-                return
+                return joystick_direction
             else:
                 time.sleep(1)
 
@@ -318,35 +325,51 @@ class Bot(services.PublisherResource):
             self.follow_line_and_avoid_obstacles()
 
     def find_free_space(self):
-        logger.info('Finding free space...')
+        logger.debug('Finding free space...')
         while not (self.distance >= settings.BOT_DEFAULT_MAX_DISTANCE):
             self.wander()
 
         self.motors.forward(steps=10)
-        logger.info('Free space found')
+        logger.debug('Free space found')
 
-    def drive_in_direction(
+    def turn_to_direction(
             self,
+            direction,
             tolerance=settings.BOT_DIRECTION_TOLERANCE):
 
-        self.direction = self.direction or settings.BOT_DEFAULT_DIRECTION
+        direction_upper = direction - tolerance
+        direction_lower = direction + tolerance
 
+        while direction_lower <= direction <= direction_upper:
+            if self.yaw > direction:
+                self.motors.left(steps=2)
+            else:
+                self.motors.right(steps=2)
+
+    def drive_in_direction(self, direction):
         self.find_free_space()
-
-        direction_lower = self.direction - tolerance
-        direction_upper = self.direction + tolerance
-
-        while direction_lower <= self.yaw <= direction_upper:
-            self.motors.left(steps=1)
-
+        self.turn_to_direction(direction=direction)
         self.wander()
 
-    def drive_in_direction_continuously(self):
+    def drive_in_direction_continuously(self, direction):
         logger.info('Driving in direction: {}...'.format(
-            settings.BOT_DEFAULT_DIRECTION
+            direction
         ))
+
+        initial_yaw = self.yaw
+
         while True:
-            self.drive_in_direction()
+            joystick_direction = self.joystick_direction
+            if joystick_direction:
+                initial_yaw = self.yaw
+                direction = joystick_direction
+
+                logger.info('Driving in direction: {}...'.format(
+                    direction
+                ))
+
+            desired_yaw = initial_yaw + self.directions.get(direction, 0)
+            self.drive_in_direction(direction=desired_yaw)
 
 
 class Service(services.PublisherService):

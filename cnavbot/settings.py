@@ -80,22 +80,12 @@ if BOT_WAIT_FOR_BUTTON_PRESS == 'false':
 else:
     BOT_WAIT_FOR_BUTTON_PRESS = True
 
-BOT_WAIT_FOR_JOYSTICK_DIRECTION = os.getenv(
-    'BOT_WAIT_FOR_JOYSTICK_DIRECTION', 'true'
-)
-if BOT_WAIT_FOR_JOYSTICK_DIRECTION == 'false':
-    BOT_WAIT_FOR_JOYSTICK_DIRECTION = False
-else:
-    BOT_WAIT_FOR_JOYSTICK_DIRECTION = True
-
-
 # Defaults ####################################################################
 
 # Must be between 0 and 100
 BOT_DEFAULT_SPEED = int(os.getenv('BOT_DEFAULT_SPEED', 30))
 BOT_DEFAULT_NAME = os.getenv('BOT_DEFAULT_NAME', HOSTNAME)
 BOT_DEFAULT_MAX_DISTANCE = int(os.getenv('BOT_DEFAULT_MAX_DISTANCE', 10))
-BOT_DEFAULT_DIRECTION = int(os.getenv('BOT_DEFAULT_DIRECTION', 180))
 BOT_DIRECTION_TOLERANCE = int(os.getenv('BOT_DIRECTION_TOLERANCE', 180))
 
 # Logging #####################################################################
