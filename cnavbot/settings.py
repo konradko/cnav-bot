@@ -58,7 +58,7 @@ CAMERA_RESOLUTION_Y = int(os.getenv('CAMERA_RESOLUTION_Y', 480))
 CAMERA_RESOLUTION = (CAMERA_RESOLUTION_X, CAMERA_RESOLUTION_Y)
 
 # cnav-sense ##################################################################
-CNAV_SENSE_ENABLED = os.getenv('CNAV_SENSE_ENABLED', 'false')
+CNAV_SENSE_ENABLED = os.getenv('CNAV_SENSE_ENABLED', 'true')
 if CNAV_SENSE_ENABLED == 'true':
     CNAV_SENSE_ENABLED = True
 else:
@@ -69,7 +69,7 @@ if CNAV_SENSE_ENABLED:
     CNAV_SENSE_ADDRESS = os.getenv('CNAV_SENSE_ADDRESS')
 
 # Bot modes ###################################################################
-BOT_ENABLED = os.getenv('BOT_ENABLED', 'false')
+BOT_ENABLED = os.getenv('BOT_ENABLED', 'true')
 if BOT_ENABLED == 'true':
     BOT_ENABLED = True
 else:
