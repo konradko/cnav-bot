@@ -5,7 +5,7 @@
 #    pip-compile --output-file requirements/test.txt requirements/test.in
 #
 -e git+https://git@github.com/konradko/cnav-constants.git@v0.0.1#egg=cnavconstants
--e git+https://git@github.com/konradko/zmq-services.git@v0.1.4#egg=zmqservices
+-e git+https://git@github.com/konradko/zmq-services.git@v0.1.5#egg=zmqservices
 colorama==0.3.7           # via radon
 configparser==3.5.0       # via flake8
 contextlib2==0.5.4

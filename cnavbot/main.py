@@ -1,11 +1,15 @@
 import os
 import sys
+import logging
 
 sys.path.append(os.getcwd())
 
 from cnavbot import settings
-from cnavbot.utils import log_exceptions, logger
+from cnavbot.utils import log_exceptions
 from cnavbot.services import bot, bluetooth, camera
+
+
+logger = logging.getLogger()
 
 
 def run():

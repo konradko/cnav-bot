@@ -1,7 +1,10 @@
 import time
+import logging
 
 from cnavbot import settings
-from cnavbot.utils import logger
+
+
+logger = logging.getLogger()
 
 
 class Driver(object):

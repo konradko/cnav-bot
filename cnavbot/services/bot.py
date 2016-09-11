@@ -1,3 +1,4 @@
+import logging
 import time
 
 from zmqservices import services
@@ -7,7 +8,10 @@ import cnavconstants.servers
 
 from cnavbot import settings
 from cnavbot.services import bluetooth, camera, pi2go, sense
-from cnavbot.utils import logger, log_exceptions
+from cnavbot.utils import log_exceptions
+
+
+logger = logging.getLogger()
 
 
 class Bot(services.PublisherResource):

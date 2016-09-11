@@ -1,3 +1,4 @@
+import logging
 import time
 
 from zmqservices import messages, services, pubsub
@@ -7,7 +8,10 @@ from cnavconstants.publishers import (
 import cnavconstants.topics
 
 from cnavbot import settings
-from cnavbot.utils import logger, log_exceptions
+from cnavbot.utils import log_exceptions
+
+
+logger = logging.getLogger()
 
 
 class Bluetooth(services.PublisherResource):
