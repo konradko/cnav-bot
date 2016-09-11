@@ -1,18 +1,18 @@
 SHELL := /bin/bash
 
-build: clean install_test_requirements resin_cli
+build: clean test_requirements
 
 resin_cli:
 	npm install --global --production resin-cli
 
 clean:
 	-find . -type f -name "*.pyc" -delete
+	-find . -type d -name "__pycache__" -delete
 
 run_on_rpi:
 	./start.sh
 
-install_test_requirements:
-	pip install --upgrade pip
+test_requirements:
 	pip install pip-tools
 	pip-sync requirements/test.txt
 
@@ -53,9 +53,9 @@ xenon:
 	xenon --max-absolute B --max-modules B --max-average A cnavbot/
 
 test: static_analysis
-	py.test cnavbot --cov=cnavbot $(pytest_args)
+	py.test -rw cnavbot --timeout=1 --cov=cnavbot $(pytest_args)
 
 deploy:
 	git push resin master
 
-.PHONY: build clean install_test_requirements test static_analysis pep8 xenon run_on_rpi update_requirements upgrade_requirements deploy ssh_bot1 ssh_bot2 ssh_bot3
+.PHONY: build clean test_requirements test static_analysis pep8 xenon run_on_rpi update_requirements upgrade_requirements deploy ssh_bot1 ssh_bot2 ssh_bot3

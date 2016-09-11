@@ -1,14 +1,12 @@
 import time
 
-import zmq
-
-from zmqservices import services, pubsub, clientserver, messages
+from zmqservices import services
 import cnavconstants.topics
 import cnavconstants.publishers
 import cnavconstants.servers
 
 from cnavbot import settings
-from cnavbot.services import bluetooth, camera, pi2go
+from cnavbot.services import bluetooth, camera, pi2go, sense
 from cnavbot.utils import logger, log_exceptions
 
 
@@ -47,7 +45,7 @@ class Bot(services.PublisherResource):
         self.camera = camera.Service.get_subscriber()
 
         if settings.CNAV_SENSE_ENABLED:
-            self.setup_sense_services()
+            self.sense = sense.Client()
 
     def run(self):
         with log_exceptions():
@@ -70,108 +68,19 @@ class Bot(services.PublisherResource):
 
             self.cleanup()
 
-    @staticmethod
-    def get_sense_service_address(port):
-        return 'tcp://{}:{}'.format(settings.CNAV_SENSE_ADDRESS, port)
-
-    def setup_sense_services(self):
-        inertial_service = self.get_sense_service_address(
-            port=cnavconstants.publishers.INERTIAL_SENSORS_PORT
-        )
-        self.compass_subscriber = pubsub.LastMessageSubscriber(
-            publishers=(inertial_service, ),
-            topics=(cnavconstants.topics.COMPASS, ),
-        )
-        self.orientation_subscriber = pubsub.LastMessageSubscriber(
-            publishers=(inertial_service, ),
-            topics=(cnavconstants.topics.ORIENTATION, ),
-        )
-
-        environmental_service = self.get_sense_service_address(
-            port=cnavconstants.publishers.ENVIRONMENTAL_SENSORS_PORT
-        )
-        self.temperature_subscriber = pubsub.LastMessageSubscriber(
-            publishers=(environmental_service, ),
-            topics=(cnavconstants.topics.TEMPERATURE, ),
-        )
-        self.pressure_subscriber = pubsub.LastMessageSubscriber(
-            publishers=(environmental_service, ),
-            topics=(cnavconstants.topics.PRESSURE, ),
-        )
-        self.humidity_subscriber = pubsub.LastMessageSubscriber(
-            publishers=(environmental_service, ),
-            topics=(cnavconstants.topics.HUMIDITY, ),
-        )
-
-        self.joystick_subscriber = pubsub.Subscriber(
-            publishers=(self.get_sense_service_address(
-                port=cnavconstants.publishers.JOYSTICK_PORT
-            ), ),
-            topics=(cnavconstants.topics.JOYSTICK, ),
-        )
-        # Do not wait for joystick input - timeout after 1 ms
-        self.set_joystick_timeout(timeout=1)
-
-        self.led_matrix_client = clientserver.Client(
-            servers=(self.get_sense_service_address(
-                port=cnavconstants.servers.LED_MATRIX_PORT
-            ), ),
-        )
-
     def cleanup(self):
         logger.info('Cleaning up')
         self.driver.cleanup()
 
     @property
-    def compass(self):
-        return self.compass_subscriber.receive().data
-
-    @property
-    def orientation(self):
-        return self.orientation_subscriber.receive().data
-
-    @property
     def yaw(self):
-        return self.orientation['yaw']
-
-    @property
-    def temperature(self):
-        return self.temperature_subscriber.receive().data
-
-    @property
-    def pressure(self):
-        return self.pressure_subscriber.receive().data
-
-    @property
-    def humidity(self):
-        return self.humidity_subscriber.receive().data
-
-    def set_joystick_timeout(self, timeout):
-        self.joystick_subscriber.socket.RCVTIMEO = timeout
-
-    @property
-    def joystick(self):
-        try:
-            return self.joystick_subscriber.receive().data
-        except zmq.error.Again:
-            # this error is raised on timeout - we're only interested in
-            # already provided input, thus ignoring
-            return None
-
-    @property
-    def joystick_direction(self):
-        return self.joystick['direction'] if self.joystick else None
+        return self.sense.yaw
 
     def wait_for_joystick_direction(self):
         logger.info('Waiting for direction from the joystick...')
 
         while True:
-            self.led_matrix_client.request(message=messages.JSON(
-                data={
-                    'method': 'show_message',
-                    'params': {'text': 'Set direction with joystick'}
-                }
-            ))
+            self.sense.display_text('Set direction with joystick')
             joystick_direction = self.joystick_direction
             if joystick_direction:
                 return joystick_direction
@@ -204,12 +113,7 @@ class Bot(services.PublisherResource):
     def wait_till_switch_pressed(self):
         logger.info('Waiting for switch to be pressed...')
         while True:
-            self.led_matrix_client.request(message=messages.JSON(
-                data={
-                    'method': 'show_message',
-                    'params': {'text': 'Press switch to start'}
-                }
-            ))
+            self.sense.display_text('Press switch to start')
             if self.switch_pressed:
                 return
             else:

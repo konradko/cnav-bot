@@ -14,16 +14,16 @@ RUNNING_ON_PI = (
 
 # Driver libs can only be installed on RPi
 if RUNNING_ON_PI:
-    from pi2go import pi2go  # noqa
+    from pi2go import pi2go
     BOT_DRIVER = pi2go
 
-    import bluetooth  # noqa
+    import bluetooth
     BLUETOOTH_DRIVER = bluetooth._bluetooth
 
-    from ibeaconscanner import blescan  # noqa
+    from ibeaconscanner import blescan
     IBEACON_SCANNER = blescan
 
-    import picamera  # noqa
+    import picamera
     CAMERA = picamera
 else:
     BOT_DRIVER = None
@@ -39,9 +39,6 @@ if BLUETOOTH_ENABLED == 'true':
 else:
     BLUETOOTH_ENABLED = False
 
-BLUETOOTH_INIT_SCRIPT = os.path.join(
-    PROJECT_ROOT, '..', 'config', 'bluetooth.sh'
-)
 # In seconds
 BLUETOOTH_SCAN_INTERVAL = int(os.getenv('BLUETOOTH_SCAN_INTERVAL', 1))
 
@@ -98,10 +95,10 @@ elif BOT_MODE == BOT_MODE_DIRECTION:
 BOT_WAIT_FOR_BUTTON_PRESS = os.getenv(
     'BOT_WAIT_FOR_BUTTON_PRESS', 'true'
 )
-if BOT_WAIT_FOR_BUTTON_PRESS == 'false':
-    BOT_WAIT_FOR_BUTTON_PRESS = False
-else:
+if BOT_WAIT_FOR_BUTTON_PRESS == 'true':
     BOT_WAIT_FOR_BUTTON_PRESS = True
+else:
+    BOT_WAIT_FOR_BUTTON_PRESS = False
 
 # Defaults ####################################################################
 

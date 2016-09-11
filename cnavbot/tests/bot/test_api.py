@@ -14,7 +14,7 @@ class TestBot(TestCase):
                 with mock.patch('cnavbot.settings.CAMERA'):
                     with mock.patch('cnavbot.settings.BOT_DRIVER'):
                         self.bot = bot.Bot(publisher=mock.Mock(port=1))
-                        self.bot.led_matrix_client = mock.Mock()
+                        self.bot.sense = mock.Mock()
                         self.bot.motors.keep_running = mock.Mock()
 
     def test__init__(self):
