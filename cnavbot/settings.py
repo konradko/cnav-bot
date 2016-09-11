@@ -156,7 +156,8 @@ logging.config.dictConfig({
             'class': 'logging.handlers.SysLogHandler',
             'formatter': 'default',
             'address': (
-                os.getenv('PAPERTRAIL_HOST'), os.getenv('PAPERTRAIL_PORT')
+                os.getenv('PAPERTRAIL_HOST'),
+                int(os.getenv('PAPERTRAIL_PORT', 0))
             ),
             'level': 'INFO',
         }
