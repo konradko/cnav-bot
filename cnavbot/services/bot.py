@@ -249,7 +249,7 @@ class Bot(services.PublisherResource):
         direction_upper = direction - tolerance
         direction_lower = direction + tolerance
 
-        while direction_lower <= direction <= direction_upper:
+        while not (direction_lower >= self.yaw <= direction_upper):
             if self.yaw > direction:
                 self.motors.left(steps=2)
             else:
