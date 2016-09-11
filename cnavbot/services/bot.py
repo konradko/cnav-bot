@@ -85,7 +85,7 @@ class Bot(services.PublisherResource):
 
         while True:
             self.sense.display_text('Set direction with joystick')
-            joystick_direction = self.joystick_direction
+            joystick_direction = self.sense.joystick_direction
             if joystick_direction:
                 return joystick_direction
             else:
@@ -268,7 +268,7 @@ class Bot(services.PublisherResource):
         initial_yaw = self.yaw
 
         while True:
-            joystick_direction = self.joystick_direction
+            joystick_direction = self.sense.joystick_direction
             if joystick_direction:
                 initial_yaw = self.yaw
                 direction = joystick_direction
