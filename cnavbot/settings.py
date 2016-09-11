@@ -42,6 +42,7 @@ else:
 # In seconds
 BLUETOOTH_SCAN_INTERVAL = int(os.getenv('BLUETOOTH_SCAN_INTERVAL', 1))
 
+
 # Camera ###################################################################
 CAMERA_ENABLED = os.getenv('CAMERA_ENABLED', 'false')
 if CAMERA_ENABLED == 'true':
@@ -54,6 +55,7 @@ CAMERA_RESOLUTION_X = int(os.getenv('CAMERA_RESOLUTION_X', 640))
 CAMERA_RESOLUTION_Y = int(os.getenv('CAMERA_RESOLUTION_Y', 480))
 CAMERA_RESOLUTION = (CAMERA_RESOLUTION_X, CAMERA_RESOLUTION_Y)
 
+
 # cnav-sense ##################################################################
 CNAV_SENSE_ENABLED = os.getenv('CNAV_SENSE_ENABLED', 'true')
 if CNAV_SENSE_ENABLED == 'true':
@@ -64,6 +66,7 @@ else:
 # must be set individually for each bot via resin.io device env vars
 if CNAV_SENSE_ENABLED:
     CNAV_SENSE_ADDRESS = os.getenv('CNAV_SENSE_ADDRESS')
+
 
 # Bot modes ###################################################################
 BOT_ENABLED = os.getenv('BOT_ENABLED', 'true')
@@ -100,6 +103,7 @@ if BOT_WAIT_FOR_BUTTON_PRESS == 'true':
 else:
     BOT_WAIT_FOR_BUTTON_PRESS = False
 
+
 # Defaults ####################################################################
 
 # Must be between 0 and 100
@@ -107,6 +111,7 @@ BOT_DEFAULT_SPEED = int(os.getenv('BOT_DEFAULT_SPEED', 30))
 BOT_DEFAULT_NAME = os.getenv('BOT_DEFAULT_NAME', HOSTNAME)
 BOT_DEFAULT_MAX_DISTANCE = int(os.getenv('BOT_DEFAULT_MAX_DISTANCE', 10))
 BOT_DIRECTION_TOLERANCE = int(os.getenv('BOT_DIRECTION_TOLERANCE', 180))
+
 
 # Logging #####################################################################
 
@@ -117,6 +122,9 @@ logging.config.dictConfig({
     'version': 1,
     'formatters': {
         'default': {
+            'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        },
+        'sentry': {
             'format': (
                 '[%(asctime)s][%(levelname)s] %(name)s '
                 '%(filename)s:%(funcName)s:%(lineno)d | %(message)s'
@@ -142,6 +150,7 @@ logging.config.dictConfig({
             'class': 'raven.handlers.logging.SentryHandler',
             'dsn': SENTRY_DSN,
             'level': 'ERROR',
+            'formatter': 'sentry',
         },
     },
     'root': {
