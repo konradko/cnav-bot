@@ -7,7 +7,7 @@ from cnavconstants.publishers import (
 import cnavconstants.topics
 
 from cnavbot import settings
-from cnavbot.utils import logger, sentry
+from cnavbot.utils import logger, log_exceptions
 
 
 class Bluetooth(services.PublisherResource):
@@ -22,7 +22,7 @@ class Bluetooth(services.PublisherResource):
         self.scanner = kwargs.pop('scanner', settings.IBEACON_SCANNER)
 
     def run(self):
-        with sentry():
+        with log_exceptions():
             self.connect()
             logger.info("Scanning with bluetooth")
 

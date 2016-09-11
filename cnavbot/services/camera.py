@@ -9,7 +9,7 @@ from cnavconstants.publishers import (
 import cnavconstants.topics
 
 from cnavbot import settings
-from cnavbot.utils import logger, sentry
+from cnavbot.utils import logger, log_exceptions
 
 
 class Camera(services.PublisherResource):
@@ -26,7 +26,7 @@ class Camera(services.PublisherResource):
         self.camera = kwargs.pop('camera', settings.CAMERA)
 
     def run(self):
-        with sentry():
+        with log_exceptions():
             with self.camera.PiCamera() as camera:
                 camera.resolution = self.resolution
                 while True:

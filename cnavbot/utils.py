@@ -1,11 +1,6 @@
 from contextlib import contextmanager
 import logging.config
 
-import raven
-
-from cnavbot import settings
-
-
 logger = logging.getLogger()
 
 
@@ -18,13 +13,9 @@ def cleanup(bot):
 
 
 @contextmanager
-def sentry():
+def log_exceptions():
     try:
         yield
     except:
-        if settings.SENTRY_DSN:
-            # prints traceback
-            logging.exception("Exception occurred, sending to Sentry:")
-            raven.Client(settings.SENTRY_DSN).captureException()
-        else:
-            raise
+        logging.exception()
+        raise

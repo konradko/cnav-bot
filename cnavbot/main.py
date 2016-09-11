@@ -1,20 +1,30 @@
+import os
+import sys
+
+sys.path.append(os.getcwd())
+
 from cnavbot import settings
-from cnavbot.utils import sentry, logger
+from cnavbot.utils import log_exceptions, logger
 from cnavbot.services import bot, bluetooth, camera
 
 
 def run():
     logger.info("Starting...")
 
-    bot.Service().start()
-    bluetooth.Service().start()
-    camera.Service().start()
+    if settings.BOT_ENABLED:
+        bot.Service().start()
+
+    if settings.BLUETOOTH_ENABLED:
+        bluetooth.Service().start()
+
+    if settings.CAMERA_ENABLED:
+        camera.Service().start()
 
     logger.info("Done")
 
 
 if __name__ == '__main__':
-    with sentry():
+    with log_exceptions():
         if settings.RUNNING_ON_PI:
             run()
         else:

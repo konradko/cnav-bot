@@ -1,6 +1,7 @@
 import logging.config
 import os
 
+
 PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
 
 _, HOSTNAME, _, _, MACHINE = os.uname()
@@ -32,6 +33,11 @@ else:
 
 
 # Bluetooth ###################################################################
+BLUETOOTH_ENABLED = os.getenv('BLUETOOTH_ENABLED', 'false')
+if BLUETOOTH_ENABLED == 'true':
+    BLUETOOTH_ENABLED = True
+else:
+    BLUETOOTH_ENABLED = False
 
 BLUETOOTH_INIT_SCRIPT = os.path.join(
     PROJECT_ROOT, '..', 'config', 'bluetooth.sh'
@@ -40,17 +46,34 @@ BLUETOOTH_INIT_SCRIPT = os.path.join(
 BLUETOOTH_SCAN_INTERVAL = int(os.getenv('BLUETOOTH_SCAN_INTERVAL', 1))
 
 # Camera ###################################################################
+CAMERA_ENABLED = os.getenv('CAMERA_ENABLED', 'false')
+if CAMERA_ENABLED == 'true':
+    CAMERA_ENABLED = True
+else:
+    CAMERA_ENABLED = False
+
 CAMERA_INTERVAL = int(os.getenv('CAMERA_INTERVAL', 1))
 CAMERA_RESOLUTION_X = int(os.getenv('CAMERA_RESOLUTION_X', 640))
 CAMERA_RESOLUTION_Y = int(os.getenv('CAMERA_RESOLUTION_Y', 480))
 CAMERA_RESOLUTION = (CAMERA_RESOLUTION_X, CAMERA_RESOLUTION_Y)
 
 # cnav-sense ##################################################################
+CNAV_SENSE_ENABLED = os.getenv('CNAV_SENSE_ENABLED', 'false')
+if CNAV_SENSE_ENABLED == 'true':
+    CNAV_SENSE_ENABLED = True
+else:
+    CNAV_SENSE_ENABLED = False
 
 # must be set individually for each bot via resin.io device env vars
-CNAV_SENSE_ADDRESS = os.getenv('CNAV_SENSE_ADDRESS')
+if CNAV_SENSE_ENABLED:
+    CNAV_SENSE_ADDRESS = os.getenv('CNAV_SENSE_ADDRESS')
 
 # Bot modes ###################################################################
+BOT_ENABLED = os.getenv('BOT_ENABLED', 'false')
+if BOT_ENABLED == 'true':
+    BOT_ENABLED = True
+else:
+    BOT_ENABLED = False
 
 # 'wander' (roam freely) or 'follow' (follow line)
 BOT_MODE_WANDER = 'wander'
@@ -97,7 +120,11 @@ logging.config.dictConfig({
     'version': 1,
     'formatters': {
         'default': {
-            'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            'format': (
+                '[%(asctime)s][%(levelname)s] %(name)s '
+                '%(filename)s:%(funcName)s:%(lineno)d | %(message)s'
+            ),
+            'datefmt': '%H:%M:%S',
         }
     },
     'handlers': {
@@ -107,19 +134,25 @@ logging.config.dictConfig({
             'maxBytes': 10 * 1024 * 1024,
             'backupCount': 5,
             'formatter': 'default',
-            'level': logging.INFO,
+            'level': 'INFO',
         },
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'default',
-            'level': logging.DEBUG,
+            'level': 'DEBUG',
+        },
+        'sentry': {
+            'class': 'raven.handlers.logging.SentryHandler',
+            'dsn': SENTRY_DSN,
+            'level': 'ERROR',
         },
     },
     'root': {
         'handlers': [
             'rotating_file',
             'console',
+            'sentry',
         ],
-        'level': logging.DEBUG,
+        'level': 'DEBUG',
     },
 })

@@ -9,7 +9,7 @@ import cnavconstants.servers
 
 from cnavbot import settings
 from cnavbot.services import bluetooth, camera, pi2go
-from cnavbot.utils import logger, sentry
+from cnavbot.utils import logger, log_exceptions
 
 
 class Bot(services.PublisherResource):
@@ -46,10 +46,11 @@ class Bot(services.PublisherResource):
         self.bluetooth = bluetooth.Service.get_subscriber()
         self.camera = camera.Service.get_subscriber()
 
-        self.setup_sense_services()
+        if settings.CNAV_SENSE_ENABLED:
+            self.setup_sense_services()
 
     def run(self):
-        with sentry():
+        with log_exceptions():
             if settings.BOT_WAIT_FOR_BUTTON_PRESS:
                 self.wait_till_switch_pressed()
 
