@@ -1,6 +1,8 @@
 import time
 
-from zmqservices import services, pubsub, clientserver
+import zmq
+
+from zmqservices import services, pubsub, clientserver, messages
 import cnavconstants.topics
 import cnavconstants.publishers
 import cnavconstants.servers
@@ -19,6 +21,7 @@ class Bot(services.PublisherResource):
     full_spin_steps = 44
     # Default number of steps
     steps = 2
+    direction = None
 
     def __init__(self, *args, **kwargs):
         super(Bot, self).__init__(*args, **kwargs)
@@ -40,6 +43,9 @@ class Bot(services.PublisherResource):
         with sentry():
             if settings.BOT_WAIT_FOR_BUTTON_PRESS:
                 self.wait_till_switch_pressed()
+
+            if settings.BOT_WAIT_FOR_JOYSTICK_DIRECTION:
+                self.wait_for_joystick_direction()
 
             if settings.BOT_IN_WANDER_MODE:
                 self.wander_continuously()
@@ -94,6 +100,8 @@ class Bot(services.PublisherResource):
             ), ),
             topics=(cnavconstants.topics.JOYSTICK, ),
         )
+        # Do not wait for joystick input - timeout after 1 ms
+        self.set_joystick_timeout(timeout=1)
 
         self.led_matrix_client = clientserver.Client(
             servers=(self.get_sense_service_address(
@@ -114,7 +122,7 @@ class Bot(services.PublisherResource):
         return self.orientation_subscriber.receive().data
 
     @property
-    def direction(self):
+    def yaw(self):
         return self.orientation['yaw']
 
     @property
@@ -129,9 +137,38 @@ class Bot(services.PublisherResource):
     def humidity(self):
         return self.humidity_subscriber.receive().data
 
+    def set_joystick_timeout(self, timeout):
+        self.joystick_subscriber.socket.RCVTIMEO = timeout
+
     @property
     def joystick(self):
-        return self.joystick_subscriber.receive().data
+        try:
+            return self.joystick_subscriber.receive().data
+        except zmq.error.Again:
+            # this error is raised on timeout - we're only interested in
+            # already provided input, thus ignoring
+            return None
+
+    @property
+    def joystick_direction(self):
+        return self.joystick['direction'] if self.joystick else None
+
+    def wait_for_joystick_direction(self):
+        logger.info('Waiting for direction from the joystick...')
+
+        while True:
+            self.led_matrix_client.request(message=messages.JSON(
+                data={
+                    'method': 'show_message',
+                    'params': {'text': 'Set direction with joystick'}
+                }
+            ))
+            joystick_direction = self.joystick_direction
+            if joystick_direction:
+                self.direction = joystick_direction
+                return
+            else:
+                time.sleep(1)
 
     @property
     def bluetooth_scan_results(self):
@@ -159,6 +196,12 @@ class Bot(services.PublisherResource):
     def wait_till_switch_pressed(self):
         logger.info('Waiting for switch to be pressed...')
         while True:
+            self.led_matrix_client.request(message=messages.JSON(
+                data={
+                    'method': 'show_message',
+                    'params': {'text': 'Press switch to start'}
+                }
+            ))
             if self.switch_pressed:
                 return
             else:
@@ -284,15 +327,16 @@ class Bot(services.PublisherResource):
 
     def drive_in_direction(
             self,
-            direction=settings.BOT_DEFAULT_DIRECTION,
             tolerance=settings.BOT_DIRECTION_TOLERANCE):
+
+        self.direction = self.direction or settings.BOT_DEFAULT_DIRECTION
 
         self.find_free_space()
 
-        direction_lower = direction - tolerance
-        direction_upper = direction + tolerance
+        direction_lower = self.direction - tolerance
+        direction_upper = self.direction + tolerance
 
-        while direction_lower <= self.direction <= direction_upper:
+        while direction_lower <= self.yaw <= direction_upper:
             self.motors.left(steps=1)
 
         self.wander()

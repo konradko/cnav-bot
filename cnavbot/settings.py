@@ -45,6 +45,11 @@ CAMERA_RESOLUTION_X = int(os.getenv('CAMERA_RESOLUTION_X', 640))
 CAMERA_RESOLUTION_Y = int(os.getenv('CAMERA_RESOLUTION_Y', 480))
 CAMERA_RESOLUTION = (CAMERA_RESOLUTION_X, CAMERA_RESOLUTION_Y)
 
+# cnav-sense ##################################################################
+
+# must be set individually for each bot via resin.io device env vars
+CNAV_SENSE_ADDRESS = os.getenv('CNAV_SENSE_ADDRESS')
+
 # Bot modes ###################################################################
 
 # 'wander' (roam freely) or 'follow' (follow line)
@@ -67,11 +72,21 @@ elif BOT_MODE == BOT_MODE_FOLLOW_AVOID:
 elif BOT_MODE == BOT_MODE_DIRECTION:
     BOT_MODE_DIRECTION_MODE = True
 
-BOT_WAIT_FOR_BUTTON_PRESS = os.getenv('BOT_WAIT_FOR_BUTTON_PRESS', 'true')
+BOT_WAIT_FOR_BUTTON_PRESS = os.getenv(
+    'BOT_WAIT_FOR_BUTTON_PRESS', 'true'
+)
 if BOT_WAIT_FOR_BUTTON_PRESS == 'false':
     BOT_WAIT_FOR_BUTTON_PRESS = False
 else:
     BOT_WAIT_FOR_BUTTON_PRESS = True
+
+BOT_WAIT_FOR_JOYSTICK_DIRECTION = os.getenv(
+    'BOT_WAIT_FOR_JOYSTICK_DIRECTION', 'true'
+)
+if BOT_WAIT_FOR_JOYSTICK_DIRECTION == 'false':
+    BOT_WAIT_FOR_JOYSTICK_DIRECTION = False
+else:
+    BOT_WAIT_FOR_JOYSTICK_DIRECTION = True
 
 
 # Defaults ####################################################################
