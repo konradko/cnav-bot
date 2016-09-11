@@ -152,12 +152,21 @@ logging.config.dictConfig({
             'level': 'ERROR',
             'formatter': 'sentry',
         },
+        'papertrail': {
+            'class': 'logging.handlers.SysLogHandler',
+            'formatter': 'default',
+            'address': (
+                os.getenv('PAPERTRAIL_HOST'), os.getenv('PAPERTRAIL_PORT')
+            ),
+            'level': 'INFO',
+        }
     },
     'root': {
         'handlers': [
             'rotating_file',
             'console',
             'sentry',
+            'papertrail',
         ],
         'level': 'DEBUG',
     },
