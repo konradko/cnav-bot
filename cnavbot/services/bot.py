@@ -115,7 +115,7 @@ class Bot(services.PublisherResource):
 
     @property
     def direction(self):
-        return self._direction
+        return self.orientation['yaw']
 
     @property
     def temperature(self):
