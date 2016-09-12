@@ -233,30 +233,21 @@ class Bot(services.PublisherResource):
         while True:
             self.follow_line_and_avoid_obstacles()
 
-    def find_free_space(self):
-        logger.debug('Finding free space...')
-        while not (self.distance >= settings.BOT_DEFAULT_MAX_DISTANCE):
-            self.wander()
-
-        self.motors.forward(steps=10)
-        logger.debug('Free space found')
-
     def turn_to_direction(
             self,
             direction,
             tolerance=settings.BOT_DIRECTION_TOLERANCE):
 
-        direction_upper = direction - tolerance
-        direction_lower = direction + tolerance
+        direction_upper = direction + tolerance
+        direction_lower = direction - tolerance
 
-        while not (direction_lower >= self.yaw <= direction_upper):
+        while not (direction_lower <= self.yaw <= direction_upper):
             if self.yaw > direction:
-                self.motors.left(steps=2)
+                self.motors.left(steps=0.5)
             else:
-                self.motors.right(steps=2)
+                self.motors.right(steps=0.5)
 
     def drive_in_direction(self, direction):
-        self.find_free_space()
         self.turn_to_direction(direction=direction)
         self.wander()
 
