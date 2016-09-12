@@ -20,7 +20,7 @@ class Camera(services.PublisherResource):
     topics = {
         'pictures': cnavconstants.topics.CAMERA,
     }
-    capture_to_stream = True
+    capture_to_stream = False
 
     def __init__(self, *args, **kwargs):
         super(Camera, self).__init__(*args, **kwargs)
@@ -37,11 +37,15 @@ class Camera(services.PublisherResource):
                     time.sleep(self.interval)
 
                     if self.capture_to_stream:
-                        message = messages.Base64()
+                        message = messages.Base64(
+                            topic=self.topics['pictures']
+                        )
                         destination = io.BytesIO()
                         capture_args = (destination, 'jpeg')
                     else:
-                        message = messages.FilePath()
+                        message = messages.FilePath(
+                            topic=self.topics['pictures']
+                        )
                         message.set_file_path(file_name=self.get_file_name())
                         destination = message.file_path
                         message.data = destination
@@ -52,7 +56,6 @@ class Camera(services.PublisherResource):
                     if self.capture_to_stream:
                         message.data = destination.read()
 
-                    message.topic = self.topics['pictures']
                     self.publisher.send(message)
 
     def take_picture(self, camera, capture_args):

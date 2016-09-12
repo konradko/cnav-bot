@@ -64,7 +64,7 @@ class Bot(services.PublisherResource):
                 )
 
             elif settings.BOT_IN_FOLLOW_CAMERA_TARGET_MODE:
-                self.self.drive_to_camera_target_continuously()
+                self.drive_to_camera_target_continuously()
 
             elif settings.BOT_IN_WANDER_MODE:
                 self.wander_continuously()
@@ -276,8 +276,8 @@ class Bot(services.PublisherResource):
             desired_yaw = initial_yaw + self.directions.get(direction, 0)
             self.drive_in_direction(direction=desired_yaw)
 
-    def find_target_in_image(self, image):
-
+    def find_target_in_image(self, image_path):
+        image = cv2.imread(image_path)
         image = cv2.medianBlur(image, 5)
         image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
         red = cv2.inRange(

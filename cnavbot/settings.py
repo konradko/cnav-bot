@@ -62,6 +62,7 @@ CAMERA_INTERVAL = int(os.getenv('CAMERA_INTERVAL', 1))
 CAMERA_RESOLUTION_X = int(os.getenv('CAMERA_RESOLUTION_X', 640))
 CAMERA_RESOLUTION_Y = int(os.getenv('CAMERA_RESOLUTION_Y', 480))
 CAMERA_RESOLUTION = (CAMERA_RESOLUTION_X, CAMERA_RESOLUTION_Y)
+FILE_MESSAGE_STORAGE_PATH = os.getenv('FILE_MESSAGE_STORAGE_PATH', '/tmp/')
 
 # Target following ############################################################
 
@@ -126,8 +127,10 @@ elif BOT_MODE == BOT_MODE_FOLLOW_AVOID:
     BOT_IN_FOLLOW_AVOID_MODE = True
 elif BOT_MODE == BOT_MODE_DIRECTION:
     BOT_MODE_DIRECTION_MODE = True
+    CNAV_SENSE_ENABLED = True
 elif BOT_MODE == BOT_MODE_FOLLOW_CAMERA_TARGET:
     BOT_IN_FOLLOW_CAMERA_TARGET_MODE = True
+    CAMERA_ENABLED = True
 
 BOT_WAIT_FOR_BUTTON_PRESS = os.getenv(
     'BOT_WAIT_FOR_BUTTON_PRESS', 'true'
@@ -141,7 +144,7 @@ else:
 # Defaults ####################################################################
 
 # Must be between 0 and 100
-BOT_DEFAULT_SPEED = int(os.getenv('BOT_DEFAULT_SPEED', 30))
+BOT_DEFAULT_SPEED = int(os.getenv('BOT_DEFAULT_SPEED', 50))
 BOT_DEFAULT_NAME = os.getenv('BOT_DEFAULT_NAME', HOSTNAME)
 BOT_DEFAULT_MAX_DISTANCE = int(os.getenv('BOT_DEFAULT_MAX_DISTANCE', 10))
 BOT_DIRECTION_TOLERANCE = int(os.getenv('BOT_DIRECTION_TOLERANCE', 10))
@@ -204,5 +207,6 @@ logging.config.dictConfig({
             'papertrail',
         ],
         'level': 'DEBUG',
+        'propagate': True,
     },
 })
