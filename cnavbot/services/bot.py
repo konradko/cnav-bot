@@ -10,6 +10,8 @@ from cnavbot import settings
 from cnavbot.services import bluetooth, camera, pi2go, sense
 from cnavbot.utils import log_exceptions
 
+cv2 = settings.CV2
+numpy = settings.NUMPY
 
 logger = logging.getLogger()
 
@@ -56,10 +58,13 @@ class Bot(services.PublisherResource):
             if settings.BOT_WAIT_FOR_BUTTON_PRESS:
                 self.wait_till_switch_pressed()
 
-            if settings.BOT_MODE_DIRECTION_MODE:
+            if settings.BOT_IN_FOLLOW_DIRECTION_MODE:
                 self.drive_in_direction_continuously(
                     direction=self.wait_for_joystick_direction()
                 )
+
+            elif settings.BOT_IN_FOLLOW_CAMERA_TARGET_MODE:
+                self.self.drive_to_camera_target_continuously()
 
             elif settings.BOT_IN_WANDER_MODE:
                 self.wander_continuously()
@@ -96,7 +101,7 @@ class Bot(services.PublisherResource):
         return self.bluetooth.receive().data
 
     @property
-    def picture(self):
+    def camera_image(self):
         return self.camera.receive().data
 
     @property
@@ -270,6 +275,71 @@ class Bot(services.PublisherResource):
 
             desired_yaw = initial_yaw + self.directions.get(direction, 0)
             self.drive_in_direction(direction=desired_yaw)
+
+    def find_target_in_image(self, image):
+
+        image = cv2.medianBlur(image, 5)
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+        red = cv2.inRange(
+            image,
+            numpy.array(settings.TARGET_COLOUR_LOW),
+            numpy.array(settings.TARGET_COLOUR_HIGH)
+        )
+
+        # Find the contours
+        contours, hierarchy = cv2.findContours(
+            red, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE
+        )
+
+        # Go through each contour
+        found_area = -1
+        found_x = -1
+
+        for contour in contours:
+            x, _, width, height = cv2.boundingRect(contour)
+            cx = x + (width / 2)
+            area = width * height
+
+            if found_area < area:
+                found_area = area
+                found_x = cx
+
+        if found_area > 0:
+            target = {
+                'x': found_x, 'area': found_area
+            }
+        else:
+            target = None
+
+        return target
+
+    def turn_to_camera_target(self, target_x):
+        image_center_x = settings.CAMERA_RESOLUTION_X / 2.0
+        direction = (target_x - image_center_x) / image_center_x
+        if direction > 0:
+            self.motors.left(steps=1)
+        else:
+            self.motors.right(steps=1)
+
+    def drive_to_camera_target(self, target):
+        if target:
+            if target['area'] < settings.TARGET_MINIMUM_AREA:
+                logger.info('Target area too small')
+            elif target['area'] > settings.TARGET_MAXIMUM_AREA:
+                logger.info('Target area too big')
+            else:
+                self.turn_to_camera_target(target['x'])
+                self.wander()
+        else:
+            logger.info('No targets found')
+
+    def drive_to_camera_target_continuously(self):
+        logger.info('Driving to camera target...')
+
+        while True:
+            self.drive_to_camera_target(
+                target=self.find_target_in_image(image=self.camera_image)
+            )
 
 
 class Service(services.PublisherService):

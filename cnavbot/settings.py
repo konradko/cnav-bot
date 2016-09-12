@@ -25,11 +25,19 @@ if RUNNING_ON_PI:
 
     import picamera
     CAMERA = picamera
+
+    import cv2
+    CV2 = cv2
+
+    import numpy
+    NUMPY = numpy
 else:
     BOT_DRIVER = None
     BLUETOOTH_DRIVER = None
     IBEACON_SCANNER = None
     CAMERA = None
+    CV2 = None
+    NUMPY = None
 
 
 # Bluetooth ###################################################################
@@ -55,6 +63,28 @@ CAMERA_RESOLUTION_X = int(os.getenv('CAMERA_RESOLUTION_X', 640))
 CAMERA_RESOLUTION_Y = int(os.getenv('CAMERA_RESOLUTION_Y', 480))
 CAMERA_RESOLUTION = (CAMERA_RESOLUTION_X, CAMERA_RESOLUTION_Y)
 
+# Target following ############################################################
+
+# Smallest target to move towards
+TARGET_MINIMUM_AREA = int(os.getenv('MINIMUM_TARGET_AREA', 10))
+# Largest target to move towards
+TARGET_MAXIMUM_AREA = int(os.getenv('MAXIMUM_TARGET_AREA', 10000))
+
+TARGET_COLOUR_LOW_H = int(os.getenv('TARGET_COLOUR_LOW_H', 115))
+TARGET_COLOUR_LOW_S = int(os.getenv('TARGET_COLOUR_LOW_S', 127))
+TARGET_COLOUR_LOW_V = int(os.getenv('TARGET_COLOUR_LOW_V', 64))
+
+TARGET_COLOUR_LOW = (
+    TARGET_COLOUR_LOW_H, TARGET_COLOUR_LOW_S, TARGET_COLOUR_LOW_V
+)
+
+TARGET_COLOUR_HIGH_H = int(os.getenv('TARGET_COLOUR_HIGH_H', 125))
+TARGET_COLOUR_HIGH_S = int(os.getenv('TARGET_COLOUR_HIGH_S', 255))
+TARGET_COLOUR_HIGH_V = int(os.getenv('TARGET_COLOUR_HIGH_V', 255))
+
+TARGET_COLOUR_HIGH = (
+    TARGET_COLOUR_HIGH_H, TARGET_COLOUR_HIGH_S, TARGET_COLOUR_HIGH_V
+)
 
 # cnav-sense ##################################################################
 CNAV_SENSE_ENABLED = os.getenv('CNAV_SENSE_ENABLED', 'true')
@@ -80,11 +110,13 @@ BOT_MODE_WANDER = 'wander'
 BOT_MODE_FOLLOW = 'follow'
 BOT_MODE_FOLLOW_AVOID = 'follow-avoid'
 BOT_MODE_DIRECTION = 'direction'
+BOT_MODE_FOLLOW_CAMERA_TARGET = 'follow-camera-target'
 BOT_MODE = os.getenv('BOT_MODE', BOT_MODE_WANDER)
 BOT_IN_WANDER_MODE = False
 BOT_IN_FOLLOW_MODE = False
 BOT_IN_FOLLOW_AVOID_MODE = False
-BOT_MODE_DIRECTION_MODE = False
+BOT_IN_FOLLOW_DIRECTION_MODE = False
+BOT_IN_FOLLOW_CAMERA_TARGET_MODE = False
 
 if BOT_MODE == BOT_MODE_WANDER:
     BOT_IN_WANDER_MODE = True
@@ -94,6 +126,8 @@ elif BOT_MODE == BOT_MODE_FOLLOW_AVOID:
     BOT_IN_FOLLOW_AVOID_MODE = True
 elif BOT_MODE == BOT_MODE_DIRECTION:
     BOT_MODE_DIRECTION_MODE = True
+elif BOT_MODE == BOT_MODE_FOLLOW_CAMERA_TARGET:
+    BOT_IN_FOLLOW_CAMERA_TARGET_MODE = True
 
 BOT_WAIT_FOR_BUTTON_PRESS = os.getenv(
     'BOT_WAIT_FOR_BUTTON_PRESS', 'true'
