@@ -108,4 +108,5 @@ class Client(object):
 
     @property
     def joystick_direction(self):
-        return self.joystick['direction'] if self.joystick else None
+        data = self.joystick
+        return data['direction'] if data else None
