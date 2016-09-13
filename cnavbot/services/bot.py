@@ -63,6 +63,11 @@ class Bot(services.PublisherResource):
                     direction=self.wait_for_joystick_direction()
                 )
 
+            elif settings.BOT_IN_FOLLOW_DIRECTION_AND_LINE_MODE:
+                self.drive_in_direction_following_line_continuously(
+                    direction=self.wait_for_joystick_direction()
+                )
+
             elif settings.BOT_IN_FOLLOW_CAMERA_TARGET_MODE:
                 self.drive_to_camera_target_continuously()
 
@@ -252,8 +257,19 @@ class Bot(services.PublisherResource):
             else:
                 self.motors.right(steps=0.5)
 
-    def drive_in_direction(self, direction):
-        self.turn_to_direction(direction=direction)
+    def drive_in_direction(self, direction, initial_direction=None):
+        initial_direction = initial_direction or self.yaw
+        joystick_direction = self.sense.joystick_direction
+        if joystick_direction:
+            initial_yaw = self.yaw
+            direction = joystick_direction
+
+            logger.info('Driving in direction: {}...'.format(
+                direction
+            ))
+
+        desired_yaw = initial_yaw + self.directions.get(direction, 0)
+        self.turn_to_direction(direction=desired_yaw)
         self.wander()
 
     def drive_in_direction_continuously(self, direction):
@@ -261,20 +277,17 @@ class Bot(services.PublisherResource):
             direction
         ))
 
-        initial_yaw = self.yaw
+        while True:
+            self.drive_in_direction(direction=direction)
+
+    def drive_in_direction_following_line_continuously(self, direction):
+        logger.info('Driving in direction following line: {}...'.format(
+            direction
+        ))
 
         while True:
-            joystick_direction = self.sense.joystick_direction
-            if joystick_direction:
-                initial_yaw = self.yaw
-                direction = joystick_direction
-
-                logger.info('Driving in direction: {}...'.format(
-                    direction
-                ))
-
-            desired_yaw = initial_yaw + self.directions.get(direction, 0)
-            self.drive_in_direction(direction=desired_yaw)
+            self.drive_in_direction(direction=direction)
+            self.follow_line()
 
     def find_target_in_image(self, image_path):
         image = cv2.imread(image_path)
@@ -338,7 +351,7 @@ class Bot(services.PublisherResource):
 
         while True:
             self.drive_to_camera_target(
-                target=self.find_target_in_image(image=self.camera_image)
+                target=self.find_target_in_image(image_path=self.camera_image)
             )
 
 
