@@ -23,8 +23,8 @@ class Bot(services.PublisherResource):
 
     # Number of steps required for 360 spin
     full_spin_steps = 44
-    # Default number of steps
-    steps = 2
+    # Default number of forward steps
+    forward_steps = settings.BOT_DEFAULT_FORWARD_STEPS
 
     # Used to set bot direction based on joystick input
     directions = {
@@ -163,34 +163,37 @@ class Bot(services.PublisherResource):
 
     def avoid_left_obstacle(self):
         step_counter = 0
+        steps = 2
         while self.left_obstacle:
             logger.debug('Avoiding left obstacle')
             if step_counter >= self.full_spin_steps:
                 logger.warning('Failed to avoid left obstacle')
                 return
-            self.motors.right(steps=self.steps)
-            step_counter += self.steps
+            self.motors.right(steps=steps)
+            step_counter += steps
 
     def avoid_right_obstacle(self):
         step_counter = 0
+        steps = 2
         while self.right_obstacle:
             logger.debug('Avoiding right obstacle')
             if step_counter >= self.full_spin_steps:
                 logger.warning('Failed to avoid right obstacle')
                 return
-            self.motors.left(steps=self.steps)
-            step_counter += self.steps
+            self.motors.left(steps=steps)
+            step_counter += steps
 
     def avoid_front_obstacle(self):
+        steps = 2
         while self.front_obstacle:
             logger.debug('Avoiding front obstacle')
             if not self.right_obstacle:
-                self.motors.right(steps=self.steps)
+                self.motors.right(steps=steps)
             elif not self.left_obstacle:
-                self.motors.left(steps=self.steps)
+                self.motors.left(steps=steps)
             else:
                 while self.front_obstacle_close:
-                    self.motors.reverse(steps=self.steps)
+                    self.motors.reverse(steps=steps)
 
     def avoid_obstacles(self):
         while self.any_obstacle:
@@ -202,7 +205,7 @@ class Bot(services.PublisherResource):
     def wander(self):
         logger.debug('Wandering')
         self.avoid_obstacles()
-        self.motors.forward(steps=self.steps)
+        self.motors.forward(steps=self.forward_steps)
 
     def wander_continuously(self):
         logger.info('Wandering...')
@@ -330,19 +333,21 @@ class Bot(services.PublisherResource):
         image_center_x = settings.CAMERA_RESOLUTION_X / 2.0
         direction = (target_x - image_center_x) / image_center_x
         if direction > 0:
-            self.motors.right(steps=0.5)
+            self.motors.right(steps=0.7)
         else:
-            self.motors.left(steps=0.5)
+            self.motors.left(steps=0.7)
 
     def drive_to_camera_target(self, target):
         if target:
             if target['area'] < settings.TARGET_MINIMUM_AREA:
                 logger.info('Target area too small')
             else:
+                self.avoid_obstacles()
                 self.turn_to_camera_target(target['x'])
-                self.wander()
+                self.motors.forward()
         else:
             logger.info('No targets found')
+            self.motors.stop()
 
     def drive_to_camera_target_continuously(self):
         logger.info('Driving to camera target...')
