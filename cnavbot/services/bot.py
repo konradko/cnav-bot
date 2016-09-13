@@ -330,9 +330,9 @@ class Bot(services.PublisherResource):
         image_center_x = settings.CAMERA_RESOLUTION_X / 2.0
         direction = (target_x - image_center_x) / image_center_x
         if direction > 0:
-            self.motors.left(steps=1)
+            self.motors.right(steps=0.5)
         else:
-            self.motors.right(steps=1)
+            self.motors.left(steps=0.5)
 
     def drive_to_camera_target(self, target):
         if target:
