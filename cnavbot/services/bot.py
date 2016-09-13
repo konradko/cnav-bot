@@ -338,8 +338,6 @@ class Bot(services.PublisherResource):
         if target:
             if target['area'] < settings.TARGET_MINIMUM_AREA:
                 logger.info('Target area too small')
-            elif target['area'] > settings.TARGET_MAXIMUM_AREA:
-                logger.info('Target area too big')
             else:
                 self.turn_to_camera_target(target['x'])
                 self.wander()

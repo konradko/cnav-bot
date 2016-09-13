@@ -67,9 +67,7 @@ FILE_MESSAGE_STORAGE_PATH = os.getenv('FILE_MESSAGE_STORAGE_PATH', '/tmp/')
 # Target following ############################################################
 
 # Smallest target to move towards
-TARGET_MINIMUM_AREA = int(os.getenv('MINIMUM_TARGET_AREA', 10))
-# Largest target to move towards
-TARGET_MAXIMUM_AREA = int(os.getenv('MAXIMUM_TARGET_AREA', 10000))
+TARGET_MINIMUM_AREA = int(os.getenv('MINIMUM_TARGET_AREA', 100))
 
 TARGET_COLOUR_LOW_H = int(os.getenv('TARGET_COLOUR_LOW_H', 115))
 TARGET_COLOUR_LOW_S = int(os.getenv('TARGET_COLOUR_LOW_S', 127))
