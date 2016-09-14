@@ -51,6 +51,24 @@ else:
 BLUETOOTH_SCAN_INTERVAL = int(os.getenv('BLUETOOTH_SCAN_INTERVAL', 1))
 
 
+# Beacons #####################################################################
+
+BEACON_ONE_ID = os.getenv(
+    'BEACON_ONE_ID', 'e2c56db5dffb48d2b060d0f5a71096e1'
+)
+BEACON_TWO_ID = os.getenv(
+    'BEACON_TWO_ID', 'e2c56db5dffb48d2b060d0f5a71096e2'
+)
+BEACON_THREE_ID = os.getenv(
+    'BEACON_THREE_ID', 'e2c56db5dffb48d2b060d0f5a71096e3'
+)
+BEACONS = [
+    BEACON_ONE_ID,
+    BEACON_TWO_ID,
+    BEACON_THREE_ID
+]
+
+
 # Camera ###################################################################
 CAMERA_ENABLED = os.getenv('CAMERA_ENABLED', 'false')
 if CAMERA_ENABLED == 'true':
@@ -65,6 +83,12 @@ CAMERA_RESOLUTION = (CAMERA_RESOLUTION_X, CAMERA_RESOLUTION_Y)
 FILE_MESSAGE_STORAGE_PATH = os.getenv('FILE_MESSAGE_STORAGE_PATH', '/tmp/')
 
 # Target following ############################################################
+
+BOT_SEARCH_FOR_TARGET = os.getenv('BOT_SEARCH_FOR_TARGET', 'true')
+if BOT_SEARCH_FOR_TARGET == 'true':
+    BOT_SEARCH_FOR_TARGET = True
+else:
+    BOT_SEARCH_FOR_TARGET = False
 
 # Smallest target to move towards
 TARGET_MINIMUM_AREA = int(os.getenv('MINIMUM_TARGET_AREA', 100))

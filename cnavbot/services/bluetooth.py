@@ -1,3 +1,4 @@
+from collections import defaultdict
 import logging
 import time
 
@@ -10,6 +11,8 @@ import cnavconstants.topics
 from cnavbot import settings
 from cnavbot.utils import log_exceptions
 
+
+numpy = settings.NUMPY
 
 logger = logging.getLogger()
 
@@ -46,10 +49,11 @@ class Bluetooth(services.PublisherResource):
 
     def scan(self):
         logger.debug("Scanning with bluetooth...")
-        return [
+        parsed = [
             self.parse(result) for result in
-            self.scanner.parse_events(self.socket, loop_count=10)
+            self.scanner.parse_events(self.socket, loop_count=100)
         ]
+        return self.filter_beacons(results=parsed)
 
     @staticmethod
     def parse(result):
@@ -62,6 +66,19 @@ class Bluetooth(services.PublisherResource):
             'minor': minor,
             'txpower': txpower,
             'rssi': rssi,
+        }
+
+    @staticmethod
+    def filter_beacons(results):
+        rssis_per_beacon = defaultdict(list)
+
+        for result in results:
+            if result['uuid'] in settings.BEACONS:
+                rssis_per_beacon[result['uuid']].append(int(result['rssi']))
+
+        return {
+            beacon: numpy.mean(rssis)
+            for beacon, rssis in rssis_per_beacon.iteritems()
         }
 
 
