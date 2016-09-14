@@ -1,4 +1,5 @@
 import logging
+import os
 import time
 
 from zmqservices import services
@@ -292,7 +293,7 @@ class Bot(services.PublisherResource):
             self.drive_in_direction(direction=direction)
             self.follow_line()
 
-    def find_target_in_image(self, image_path):
+    def find_target_in_image(self, image_path, delete_image=True):
         image = cv2.imread(image_path)
         image = cv2.medianBlur(image, 5)
         image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
@@ -327,6 +328,9 @@ class Bot(services.PublisherResource):
         else:
             target = None
 
+        if delete_image:
+            os.remove(image_path)
+
         return target
 
     def turn_to_camera_target(self, target_x):
@@ -336,6 +340,36 @@ class Bot(services.PublisherResource):
             self.motors.right(steps=0.7)
         else:
             self.motors.left(steps=0.7)
+
+    def search_for_target(self):
+        target_found = self.find_target_in_image(
+            image_path=self.camera_image
+        )
+        multiplier = 1
+        steps = 1
+
+        while not target_found:
+            self.avoid_obstacles()
+
+            if (multiplier * steps) > self.full_spin_steps:
+                multiplier = 1
+
+            for x in xrange(multiplier):
+                self.motors.right(steps=1)
+                target_found = self.find_target_in_image(
+                    image_path=self.camera_image
+                )
+
+            multiplier = multiplier * 2
+
+            if not target_found:
+                for x in xrange(multiplier):
+                    self.motors.left(steps=1)
+                    target_found = self.find_target_in_image(
+                        image_path=self.camera_image
+                    )
+
+            multiplier = multiplier * 2
 
     def drive_to_camera_target(self, target):
         if target:
@@ -348,6 +382,8 @@ class Bot(services.PublisherResource):
         else:
             logger.info('No targets found')
             self.motors.stop()
+            if settings.BOT_SEARCH_FOR_TARGET:
+                self.search_for_target()
 
     def drive_to_camera_target_continuously(self):
         logger.info('Driving to camera target...')
