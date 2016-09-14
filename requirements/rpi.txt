@@ -17,3 +17,4 @@ pyzmq==15.4.0
 raven==5.25.0
 RPi.GPIO==0.6.2
 smbus-cffi==0.5.1
+gattlib==0.20150805

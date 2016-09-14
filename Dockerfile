@@ -7,7 +7,7 @@ ENV HOME=/root
 COPY config/papertrail/papertrail.service /etc/systemd/system/
 
 # Install required packages and remove the apt list to reduce the size of the image
-RUN apt-get update && apt-get install -yq --no-install-recommends \
+RUN apt-get clean && apt-get update && apt-get install -yq --no-install-recommends \
     openssh-server \
     nmap \
     bluetooth \
@@ -18,7 +18,8 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
     libopencv-dev \
     python-opencv \
     build-essential \
-    libc6-dev && \
+    libc6-dev \
+    libboost-python-dev && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Prometheus
