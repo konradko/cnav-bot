@@ -5,9 +5,7 @@ import os
 PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
 
 _, HOSTNAME, _, _, MACHINE = os.uname()
-RUNNING_ON_PI = (
-    HOSTNAME.startswith('raspberrypi') and MACHINE.startswith('arm')
-)
+RUNNING_ON_PI = MACHINE.startswith('arm')
 
 
 # Drivers #####################################################################
