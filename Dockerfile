@@ -19,7 +19,7 @@ RUN apt-get clean && apt-get update && apt-get install -yq --no-install-recommen
     python-opencv \
     build-essential \
     libc6-dev \
-    libboost-python-dev && \
+    libboost-all-dev && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Prometheus
