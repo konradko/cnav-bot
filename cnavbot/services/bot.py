@@ -26,6 +26,8 @@ class Bot(services.PublisherResource):
     full_spin_steps = 44
     # Default number of forward steps
     forward_steps = settings.BOT_DEFAULT_FORWARD_STEPS
+    avoid_obstacle_steps = settings.BOT_AVOID_OBSTACLE_STEPS
+    follow_line_steps = settings.BOT_FOLLOW_LINE_STEPS
 
     # Used to set bot direction based on joystick input
     directions = {
@@ -164,37 +166,34 @@ class Bot(services.PublisherResource):
 
     def avoid_left_obstacle(self):
         step_counter = 0
-        steps = 2
         while self.left_obstacle:
             logger.debug('Avoiding left obstacle')
             if step_counter >= self.full_spin_steps:
                 logger.warning('Failed to avoid left obstacle')
                 return
-            self.motors.right(steps=steps)
-            step_counter += steps
+            self.motors.right(steps=self.avoid_obstacle_steps)
+            step_counter += self.avoid_obstacle_steps
 
     def avoid_right_obstacle(self):
         step_counter = 0
-        steps = 2
         while self.right_obstacle:
             logger.debug('Avoiding right obstacle')
             if step_counter >= self.full_spin_steps:
                 logger.warning('Failed to avoid right obstacle')
                 return
-            self.motors.left(steps=steps)
-            step_counter += steps
+            self.motors.left(steps=self.avoid_obstacle_steps)
+            step_counter += self.avoid_obstacle_steps
 
     def avoid_front_obstacle(self):
-        steps = 2
         while self.front_obstacle:
             logger.debug('Avoiding front obstacle')
             if not self.right_obstacle:
-                self.motors.right(steps=steps)
+                self.motors.right(steps=self.avoid_obstacle_steps)
             elif not self.left_obstacle:
-                self.motors.left(steps=steps)
+                self.motors.left(steps=self.avoid_obstacle_steps)
             else:
                 while self.front_obstacle_close:
-                    self.motors.reverse(steps=steps)
+                    self.motors.reverse(steps=self.avoid_obstacle_steps)
 
     def avoid_obstacles(self):
         while self.any_obstacle:
@@ -221,17 +220,17 @@ class Bot(services.PublisherResource):
         elif self.left_line:
             last_left = True
             last_right = False
-            self.motors.right(steps=1)
+            self.motors.right(steps=self.follow_line_steps)
         elif self.right_line:
             last_right = True
             last_left = False
-            self.motors.left(steps=1)
+            self.motors.left(steps=self.follow_line_steps)
         elif self.left_line and self.right_line:
-            self.reverse(steps=2)
+            self.reverse(steps=self.avoid_obstacle_steps)
             if last_right:
-                self.motors.left(steps=2)
+                self.motors.left(steps=self.avoid_obstacle_steps)
             if last_left:
-                self.motors.right(steps=2)
+                self.motors.right(steps=self.avoid_obstacle_steps)
 
     def follow_line_continuously(self):
         logger.info('Following line...')

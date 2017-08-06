@@ -169,8 +169,9 @@ else:
 # Defaults ####################################################################
 
 # Must be between 0 and 100
-BOT_DEFAULT_SPEED = int(os.getenv('BOT_DEFAULT_SPEED', 50))
+BOT_DEFAULT_SPEED = int(os.getenv('BOT_DEFAULT_SPEED', 40))
 BOT_DEFAULT_FORWARD_STEPS = int(os.getenv('BOT_DEFAULT_FORWARD_STEPS', 3))
+BOT_AVOID_OBSTACLE_STEPS = int(os.getenv('BOT_AVOID_OBSTACLE_STEPS', 2))
 BOT_DEFAULT_NAME = os.getenv('BOT_DEFAULT_NAME', HOSTNAME)
 BOT_DEFAULT_MAX_DISTANCE = int(os.getenv('BOT_DEFAULT_MAX_DISTANCE', 10))
 BOT_DIRECTION_TOLERANCE = int(os.getenv('BOT_DIRECTION_TOLERANCE', 10))
