@@ -263,8 +263,8 @@ class Bot(services.PublisherResource):
     def drive_in_direction(self, direction, initial_direction=None):
         initial_direction = initial_direction or self.yaw
         joystick_direction = self.sense.joystick_direction
+        initial_yaw = self.yaw
         if joystick_direction:
-            initial_yaw = self.yaw
             direction = joystick_direction
 
             logger.info('Driving in direction: {}...'.format(
