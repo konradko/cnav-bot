@@ -296,7 +296,7 @@ class Bot(services.PublisherResource):
         image = cv2.imread(image_path)
         image = cv2.medianBlur(image, 5)
         image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
-        red = cv2.inRange(
+        target_colour_threshold = cv2.inRange(
             image,
             numpy.array(settings.TARGET_COLOUR_LOW),
             numpy.array(settings.TARGET_COLOUR_HIGH)
@@ -304,7 +304,9 @@ class Bot(services.PublisherResource):
 
         # Find the contours
         contours, hierarchy = cv2.findContours(
-            red, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE
+            target_colour_threshold,
+            cv2.RETR_LIST,
+            cv2.CHAIN_APPROX_SIMPLE
         )
 
         # Go through each contour
